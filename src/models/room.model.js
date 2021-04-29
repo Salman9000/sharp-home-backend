@@ -1,36 +1,34 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate } = require('./plugins');
 
-const deviceSchema = mongoose.Schema(
+const roomSchema = mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
       trim: true,
     },
-    powerRating: {
-      type: Number,
-      required: true,
-    },
-    status: {
+    description: {
       type: String,
-      enum: ['on', 'off'],
       required: true,
+      trim: true,
     },
-    exists: {
-      type: Boolean,
+    devices: [
+      {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'Device',
+        required: false,
+      },
+    ],
+    deviceCount: {
+      type: Number,
       required: false,
-      default: true,
-    },
-    room: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'room',
-      required: false,
+      default: 0,
     },
     userId: {
-      type: mongoose.SchemaTypes.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false,
+      required: true,
     },
   },
   {
@@ -39,8 +37,8 @@ const deviceSchema = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-deviceSchema.plugin(toJSON);
-deviceSchema.plugin(paginate);
+roomSchema.plugin(toJSON);
+roomSchema.plugin(paginate);
 
 /*
  * Check if email is taken
@@ -54,8 +52,8 @@ deviceSchema.plugin(paginate);
 // };
 
 /**
- * @typedef Device
+ * @typedef Room
  */
-const Device = mongoose.model('Device', deviceSchema);
+const Room = mongoose.model('Room', roomSchema);
 
-module.exports = Device;
+module.exports = Room;
