@@ -1,14 +1,22 @@
 const httpStatus = require('http-status');
 const { Device } = require('../models');
 const ApiError = require('../utils/ApiError');
+const { Room } = require('../models')
+const Roomservice = require('./room.service');
 
 /**
  * Create a device
  * @param {Object} deviceBody
  * @returns {Promise<Device>}
  */
-const createDevice = async (deviceBody, userId) => {
+ const createDevice = async (deviceBody, userId) => {
   const device = await Device.create({ ...deviceBody, userId });
+  let deviceId = device.id;
+  let roomId = device.room;
+  const room = await Roomservice.getRoomById(roomId);
+  room.devices.push(deviceId);
+  room.deviceCount = room.devices.length
+  const roomupdate = await Roomservice.updateRoomById(roomId, room);
   return device;
 };
 
