@@ -7,9 +7,8 @@ const ApiError = require('../utils/ApiError');
  * @param {Object} deviceBody
  * @returns {Promise<Device>}
  */
-const createDevice = async (deviceBody) => {
-
-  const device = await Device.create(deviceBody);
+const createDevice = async (deviceBody, userId) => {
+  const device = await Device.create({ ...deviceBody, userId });
   return device;
 };
 
@@ -35,8 +34,6 @@ const queryDevices = async (filter, options) => {
 const getDeviceById = async (id) => {
   return Device.findById(id);
 };
-
-
 
 /**
  * Update device by id

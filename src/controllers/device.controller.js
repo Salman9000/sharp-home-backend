@@ -5,12 +5,13 @@ const catchAsync = require('../utils/catchAsync');
 const { deviceService } = require('../services');
 
 const createDevice = catchAsync(async (req, res) => {
-  const device = await deviceService.createDevice(req.body);
+  const device = await deviceService.createDevice(req.body, req.user._id);
   res.status(httpStatus.CREATED).send(device);
 });
 
 const getDevices = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'status']);
+  // console.log(req.user);
+  const filter = { userId: req.user._id };
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await deviceService.queryDevices(filter, options);
   res.send(result);

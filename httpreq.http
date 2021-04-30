@@ -1,0 +1,2 @@
+GET http://localhost:3000/v1/rooms 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MDg5YzNjNGRiOTNhMzNiOTA2OTNlMTkiLCJpYXQiOjE2MTk3MTAwMzYsImV4cCI6MTYxOTcxMTgzNiwidHlwZSI6ImFjY2VzcyJ9.3wLdrgpdX3oXPFwsrPElMC7DirhLERX-J2cQ4csVuaQ
