@@ -16,6 +16,12 @@ const getDevices = catchAsync(async (req, res) => {
   const result = await deviceService.queryDevices(filter, options);
   res.send(result);
 });
+const getRoomDevices = catchAsync(async (req, res) => {
+  const filter = { userId: req.user._id, room: req.params.roomId };
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await deviceService.queryDevices(filter, options);
+  res.send(result);
+});
 
 const getDevice = catchAsync(async (req, res) => {
   const device = await deviceService.getDeviceById(req.params.deviceId);
@@ -38,6 +44,7 @@ const deleteDevice = catchAsync(async (req, res) => {
 module.exports = {
   createDevice,
   getDevices,
+  getRoomDevices,
   getDevice,
   updateDevice,
   deleteDevice,

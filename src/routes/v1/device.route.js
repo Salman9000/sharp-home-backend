@@ -14,7 +14,11 @@ router
   .patch();
 
 router
-  .route('/:deviceId')
+  .route('/rooms/:roomId')
+  .get(auth('roomDevice'), deviceController.getRoomDevices)
+  
+router
+  .route('getDevice/:deviceId')
   .get(deviceController.getDevice)
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
