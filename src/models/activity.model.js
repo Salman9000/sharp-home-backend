@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const activitySchema = mongoose.Schema(
   {
@@ -50,6 +50,7 @@ const activitySchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 activitySchema.plugin(toJSON);
 activitySchema.plugin(paginate);
+activitySchema.plugin(aggregatePaginate);
 
 /*
  * Check if email is taken

@@ -13,13 +13,11 @@ router
   .delete()
   .patch();
 
-router 
-  .route('/graph')
-  .get(auth('getActivity'),activityController.getActivitiesBySevenDays)
+router.route('/graph').get(auth('getActivity'), activityController.getActivitiesBy7Days);
 // router
 //   .route('/:activityId')
 //   .get(auth('getActivity'), activityController.getActivity)
-  
+
 // router
 //   .route('getActivity/:activityId')
 //   .get(activityController.getActivity)
