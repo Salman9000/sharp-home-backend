@@ -4,6 +4,7 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const roomRoute = require('./room.route');
 const deviceRoute = require('./device.route');
+const activityRoute = require('./activity.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -25,6 +26,10 @@ const defaultRoutes = [
     path: '/rooms',
     route: roomRoute,
   },
+  {
+    path: '/activity',
+    route: activityRoute,
+  }
 ];
 
 const devRoutes = [
