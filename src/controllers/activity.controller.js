@@ -29,19 +29,31 @@ const getActivitiesByToday = catchAsync(async (req, res) => {
   const result = await activityService.queryActivities(filter, options);
   res.send(result);
 });
+const getCustomActivity = (resultArray, inputArray) => {
+  inputArray.days = resultArray.docs.map((value) => ({
+    day: moment(value.startDate).format('dddd'),
+    overallConsumption: value.overallConsumption.toFixed(2),
+    deviceId: value.deviceId,
+  }));
+  inputArray.overallConsumption = resultArray.docs
+    .map((value) => value.overallConsumption)
+    .reduce((acc, current) => acc + current)
+    .toFixed(2);
+  return inputArray;
+};
 const getActivitiesBySevenDays = catchAsync(async (req, res) => {
   var today = new Date(2021, 2, 3);
-  var today2 = moment(today).format('dddd');
-
-  console.log(today2);
   var lastDate = moment(today).subtract(7, 'days');
+  console.log(today);
   const filter = { userId: req.user._id, startDate: { $gte: lastDate, $lte: today } };
   let options = pick(req.query, ['sortBy', 'limit', 'page']);
-  options = { ...options, select: 'overallConsumption startDate' };
+  options = { ...options, select: 'overallConsumption startDate deviceId', pagination: false };
   const result = await activityService.queryActivities(filter, options);
-  const resultSevenDays = result.docs.map((value) => value.overallConsumption).reduce((acc, current) => acc + current);
-  console.log(result.docs.map((value) => console.log(moment(value.startDate).format('dddd'))));
-  res.json({ overallConsumption: resultSevenDays });
+  let result7days = { days: [], overallConsumption: 0 };
+  result7days = getCustomActivity(result, result7days);
+  result7days.count = result7days.days.length;
+  console.log(result7days.days);
+  res.json({ result7days });
 });
 // const getRoomActivities = catchAsync(async (req, res) => {
 //   const filter = { userId: req.user._id, room: req.params.roomId };
