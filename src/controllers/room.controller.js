@@ -16,7 +16,7 @@ const getRooms = catchAsync(async (req, res) => {
   const result = await roomService.queryRooms(filter, {
     ...options,
     populate: { model: 'User', path: 'userId', select: 'name role' },
-    select: 'description',
+    select: 'description name deviceCount',
   });
   res.send(result);
 });
