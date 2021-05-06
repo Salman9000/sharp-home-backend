@@ -12,11 +12,12 @@ const deviceSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    status: {
-      type: String,
-      enum: ['on', 'off'],
-      required: true,
-    },
+    // status: {
+    //   type: String,
+    //   enum: ['on', 'off'],
+    //   required: true,
+    //   default: 'off',
+    // },
     exists: {
       type: Boolean,
       required: false,
