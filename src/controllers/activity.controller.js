@@ -36,7 +36,7 @@ const getCustomActivity = (resultArray, inputArray) => {
   resultArray.docs.map((value) => {
     date = new Date(value._id.year, value._id.month - 1, value._id.day);
 
-    labels.push(moment(date).format('dddd'));
+    labels.push(`${moment(date).format('dd')}/${moment(date).format('D')}`);
     datas.push((value.total / 1000).toFixed(2));
   });
   inputArray.labels = labels;
@@ -105,12 +105,7 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
   result1Month = getCustomActivity1Month(result, result1Month);
   res.json({ result1Month });
 });
-// const getRoomActivities = catchAsync(async (req, res) => {
-//   const filter = { userId: req.user._id, room: req.params.roomId };
-//   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-//   const result = await activityService.queryActivitys(filter, options);
-// res.send(result);
-// });
+
 const getCustomActivityOneDay = (resultArray, inputArray) => {
   labels = [];
   datas = [];
