@@ -9,6 +9,12 @@ const ApiError = require('../utils/ApiError');
  */
 const createDevice = async (deviceBody, userId) => {
   const device = await Device.create({ ...deviceBody, userId });
+  let deviceId = device.id;
+  let roomId = device.room;
+  const room = await Roomservice.getRoomById(roomId);
+  room.devices.push(deviceId);
+  room.deviceCount = room.devices.length;
+  const roomupdate = await Roomservice.updateRoomById(roomId, room);
   return device;
 };
 
