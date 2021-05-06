@@ -48,14 +48,12 @@ const getCustomActivity = (resultArray, inputArray) => {
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   // console.log(inputArray);
-  return { inputArray };
+  return { inputArray, overallConsumption };
 };
 const getCustomActivity1Month = (resultArray, inputArray) => {
   labels = [];
   datas = [];
   resultArray.docs.map((value) => {
-    // date = new Date(value._id.year, value._id.month - 1, value._id.day);
-
     labels.push('Week ' + value._id.week);
     datas.push((value.total / 1000).toFixed(2));
   });
@@ -65,8 +63,7 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
     .map((value) => value.total)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
-  // console.log(inputArray);
-  return { inputArray };
+  return { inputArray, overallConsumption };
 };
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
   var today = new Date(2021, 2, 3);
@@ -83,17 +80,12 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
   });
   aggregate.sort({ '_id.month': 1, '_id.day': 1 });
   const options = {
-    // page: 1,
     pagination: false,
-    // limit: 10,
-    //,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   console.log(result);
   let result7Days = { labels: [], datasets: { data: [] } };
   result7Days = getCustomActivity(result, result7Days);
-  // result7days.count = result7days.days.length;
-  // console.log(result7days.days);
   console.log(result7Days);
   res.json({ result7Days });
 });
@@ -113,18 +105,12 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
   });
   aggregate.sort({ '_id.week': 1, '_id.month': 1 });
   const options = {
-    // page: 1,
     pagination: false,
-    // limit: 10,
-    //,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   // console.log(result);
   let result1Month = { labels: [], datasets: { data: [] } };
   result1Month = getCustomActivity1Month(result, result1Month);
-  // result7days.count = result7days.days.length;
-  // console.log(result7days.days);
-  // console.log(result7days);
   res.json({ result1Month });
 });
 // const getRoomActivities = catchAsync(async (req, res) => {
@@ -133,83 +119,67 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
 //   const result = await activityService.queryActivitys(filter, options);
 // res.send(result);
 // });
-const getActivitiesByToday = catchAsync(async (req, res) => {
-  var today = new Date(2021, 2, 3);
-  var lastDate = moment(today).subtract(24, 'hours');
+const getCustomActivityOneDay = (resultArray, inputArray) => {
+  labels = [];
+  datas = [];
+  resultArray.docs.map((value) => {
+    labels.push(value._id.hour + ':00');
+    datas.push((value.total / 1000).toFixed(2));
+  });
+  inputArray.labels = labels;
+  inputArray.datasets.data = datas;
+  overallConsumption = resultArray.docs
+    .map((value) => value.total)
+    .reduce((acc, current) => acc + current)
+    .toFixed(2);
+  return { inputArray, overallConsumption };
+};
+
+const getActivitiesByOneDay = catchAsync(async (req, res) => {
+  console.log(req.params);
+  let today = new Date(2021, 2, 3);
+  let lastDate;
+  if (req.params.day == 'Today') {
+    lastDate = moment(today).add(24, 'hours');
+  } else if (req.params.day == 'Yesterday') {
+    lastDate = today;
+    today = moment(today).subtract(24, 'hours');
+  }
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
-
+  aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
   aggregate.unwind({ path: '$activity' });
-  // aggregate.addFields({
-
-  // con: {
-  //   $cond: {
-  //     if: { $eq: ['$activity.status', 'on'] },
-  //     then: { add: { $add: ['$powerRating'] } },
-  //   },
-  // },
-  // hourConsumptionStart: { $min: '$activity.overall' },
-  // hourConsumptionEnd: { $max: '$activity.overall' },
-  //   hourConsumptionStart: { $arrayElemAt: ['$activity.overall', 0] },
-  //   hourConsumptionEnd: { $arrayElemAt: ['$activity.overall', 60] },
-  // });
-  // aggregate.project({ '$activity.overall': 1 });
   aggregate.group({
     _id: {
-      month: { $month: '$activity.timestamp' },
-      day: { $dayOfMonth: '$activity.timestamp' },
-      year: { $year: '$activity.timestamp' },
-      hour: { $hour: '$activity.timestamp' },
+      month1: { $month: '$activity.timestamp' },
+      day1: { $dayOfMonth: '$activity.timestamp' },
+      year1: { $year: '$activity.timestamp' },
+      hour1: { $hour: '$activity.timestamp' },
       deviceId: '$deviceId',
-      // power: '$powerRating',
-      //
-      // customfield: {
-      //   $switch: {
-      //     branches: [
-      //       { case: { $eq: ['$activity.status', 'on'] }, then: { add: { $sum: ['$powerRating'] } } },
-      //       { case: { $eq: ['$activity.status', 'off'] }, then: { sub: { $add: [0] } } },
-      //     ],
-      //     // default: 0,
-      //   },
-      // },
     },
-    con: { $sum: '$activity.overall' },
-    // $cond: {
-    //   if: { $eq: ['$activity.status', 'on'] },
-    //   then: { $sum: ['$powerRating'] },
-    //   else: 0,
-    // },
-    // },
-    // ove: { $max: '$activity.overall' },
-
-    // hourConsumptionStart: { $min: '$activity.overall' },
-    // hourConsumptionEnd: { $max: '$activity.overall' },
+    min: { $min: '$activity.overall' },
+    max: { $max: '$activity.overall' },
   });
-
-  // aggregate.group({
-  //   $group: {
-  //     _id: '$_id.hour',
-  //     books: {
-  //       $push: {
-  //         book: '$_id.book',
-  //         count: '$bookCount',
-  //       },
-  //     },
-  //     count: { $sum: '$bookCount' },
-  //   },
-  // });
-
-  //   total: { $sum: '$overallConsumption' },
-  // });
+  aggregate.project({
+    difference: { $subtract: ['$max', '$min'] },
+  });
+  aggregate.group({
+    _id: {
+      month: '$_id.month1',
+      day: '$_id.day1',
+      year: '$_id.year1',
+      hour: '$_id.hour1',
+    },
+    total: { $sum: '$difference' },
+  });
+  console.log(aggregate.group);
   aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
   const options = {
-    page: 1,
-    // pagination: false,
-    limit: 10,
-    //,
+    pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  res.send(result);
+  let resultOneDay = { labels: [], datasets: { data: [] } };
+  resultOneDay = getCustomActivityOneDay(result, resultOneDay);
+  res.json({ resultOneDay });
 });
 const getActivity = catchAsync(async (req, res) => {
   const activity = await activityService.getActivityById(req.params.activityId);
@@ -232,7 +202,7 @@ const deleteActivity = catchAsync(async (req, res) => {
 module.exports = {
   createActivity,
   getActivities,
-  getActivitiesByToday,
+  getActivitiesByOneDay,
   getActivitiesBy7Days,
   getActivitiesBy1Month,
   //   getRoomActivitys,

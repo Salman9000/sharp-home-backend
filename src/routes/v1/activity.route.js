@@ -16,6 +16,10 @@ router
 router.route('/1Month').get(auth('getActivity'), activityController.getActivitiesBy1Month);
 
 router.route('/7Days').get(auth('getActivity'), activityController.getActivitiesBy7Days);
+
+router.route('/:day').get(auth('getActivity'), activityController.getActivitiesByOneDay);
+
+// router.route('/Yesterday').get(auth('getActivity'), activityController.getActivitiesByOneDay);
 // router
 //   .route('/:activityId')
 //   .get(auth('getActivity'), activityController.getActivity)
