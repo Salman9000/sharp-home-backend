@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const deviceSchema = mongoose.Schema(
   {
@@ -42,7 +42,7 @@ const deviceSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 deviceSchema.plugin(toJSON);
 deviceSchema.plugin(paginate);
-
+deviceSchema.plugin(aggregatePaginate);
 /*
  * Check if email is taken
  * @param {string} email - The user's email
