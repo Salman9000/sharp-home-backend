@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
 const { Device } = require('../models');
 const ApiError = require('../utils/ApiError');
-
+const { Room } = require('../models');
+const Roomservice = require('./room.service');
 /**
  * Create a device
  * @param {Object} deviceBody

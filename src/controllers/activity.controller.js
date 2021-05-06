@@ -15,9 +15,7 @@ const createActivity = catchAsync(async (req, res) => {
 });
 
 const getActivities = catchAsync(async (req, res) => {
-  // console.log(req.user);
   const filter = { userId: req.user._id };
-  console.log(filter);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await activityService.queryActivities(filter, options);
   res.send(result);
@@ -47,7 +45,6 @@ const getCustomActivity = (resultArray, inputArray) => {
     .map((value) => value.total)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
-  // console.log(inputArray);
   return { inputArray, overallConsumption };
 };
 const getCustomActivity1Month = (resultArray, inputArray) => {
@@ -83,17 +80,13 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  console.log(result);
   let result7Days = { labels: [], datasets: { data: [] } };
   result7Days = getCustomActivity(result, result7Days);
-  console.log(result7Days);
   res.json({ result7Days });
 });
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
   var today = new Date(2021, 2 - 1, 10);
-  // console.log(today);
   var lastDate = moment(today).subtract(1, 'month');
-  // console.log(lastDate);
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
   aggregate.group({
@@ -108,7 +101,6 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  // console.log(result);
   let result1Month = { labels: [], datasets: { data: [] } };
   result1Month = getCustomActivity1Month(result, result1Month);
   res.json({ result1Month });
@@ -136,7 +128,6 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
 };
 
 const getActivitiesByOneDay = catchAsync(async (req, res) => {
-  console.log(req.params);
   let today = new Date(2021, 2, 3);
   let lastDate;
   if (req.params.day == 'Today') {
@@ -171,7 +162,6 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     },
     total: { $sum: '$difference' },
   });
-  console.log(aggregate.group);
   aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
   const options = {
     pagination: false,

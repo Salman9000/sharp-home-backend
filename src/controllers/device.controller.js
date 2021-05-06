@@ -4,7 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { deviceService } = require('../services');
 const { Activity } = require('../models');
-// const { activityService } = require('../services');
+const { activityService } = require('../services');
 
 const createDevice = catchAsync(async (req, res) => {
   const device = await deviceService.createDevice(req.body, req.user._id);
@@ -12,30 +12,20 @@ const createDevice = catchAsync(async (req, res) => {
 });
 
 const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
-  const device = await deviceService.getDeviceById(req.params.deviceId);
-  if (!device) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Device not found');
-  }
   const aggregate = Activity.aggregate([
-    { $match: { deviceId: device } },
+    { $match: { userId: req.user._id } },
     {
       $group: {
-        _id: device._id,
+        _id: req.params.deviceId,
         total: { $sum: `$overallConsumption` },
       },
     },
   ]);
-  // aggregate.match({ deviceId: device });
-  // aggregate.group({
-  //   _id: null,
-  //   total: { $sum: '$overallConsumption' },
-  // });
-
-  // const options = {
-  //   pagination: false,
-  // };
-  // const result = await activityService.queryAggregateActivities(aggregate, options);
-  res.json({ aggregate });
+  const options = {
+    pagination: false,
+  };
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  res.json({ result });
 });
 
 const getDevices = catchAsync(async (req, res) => {

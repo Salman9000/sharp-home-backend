@@ -27,8 +27,6 @@ const queryActivities = async (filter, options) => {
 };
 
 const queryAggregateActivities = async (aggregate, options) => {
-  // console.log(myAggregate);
-
   const activities = await Activity.aggregatePaginate(aggregate, options);
   return activities;
 };
