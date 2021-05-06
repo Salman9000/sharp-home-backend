@@ -4,8 +4,10 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { deviceService } = require('../services');
 const { Activity } = require('../models');
+const { Device } = require('../models');
 const { activityService } = require('../services');
-
+var moment = require('moment');
+// const { deviceService } = require('../services');
 const createDevice = catchAsync(async (req, res) => {
   const device = await deviceService.createDevice(req.body, req.user._id);
   res.status(httpStatus.CREATED).send(device);
@@ -28,6 +30,74 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
   res.json({ result });
 });
 
+const getCustomActivity1Month = (resultArray, inputArray) => {
+  //{ labels: [], datasets: { data: [] } }
+  console.log(resultArray);
+  labels = [];
+  datas = [];
+  deviceArray = [];
+
+  count = 0;
+
+  resultArray.docs.map((value) => {
+    labels.push('Week ' + value._id.week);
+    deviceArray.push(`${value._id.deviceId}`);
+    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`);
+  });
+  data2 = new Array(2).fill(new Array(1).fill(0));
+  // console.log(data2);
+  data = [];
+  const uniqueSet = new Set(labels);
+  labels = [...uniqueSet];
+  const uniqueDevice = new Set(deviceArray);
+  deviceArray = [...uniqueDevice];
+  inputArray.labels = labels;
+  count = 0;
+  datas.map((value) => {
+    var index = deviceArray.indexOf(value.split(' ')[1]);
+    //console.log(index);
+    //console.log(value.split(' ')[1] + ' ' + value.split(' ')[0]);
+    data2[index].push(value.split(' ')[0]);
+    //console.log(data2);
+  });
+
+  // resultArray.docs.map((value) => {
+  //   labels.push('Week ' + value._id.week);
+  //   //datas.push((value.total / 1000).toFixed(2));
+  // });
+  console.log(data2);
+  // inputArray.datasets.data = datas;
+  overallConsumption = resultArray.docs
+    .map((value) => value.total)
+    .reduce((acc, current) => acc + current)
+    .toFixed(2);
+  return { inputArray, overallConsumption };
+};
+const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
+  var today = new Date(2021, 2 - 1, 10);
+  var lastDate = moment(today).subtract(1, 'month');
+  let aggregate = Activity.aggregate();
+  aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+  aggregate.group({
+    _id: {
+      week: { $week: '$startDate' },
+      year: { $year: '$startDate' },
+      deviceId: '$deviceId',
+    },
+    total: { $sum: '$overallConsumption' },
+  });
+  aggregate.sort({ '_id.deviceId': 1, '_id.week': 1, '_id.year': 1 });
+  //aggregate.unwind({ path: '$_id' });
+  // aggregate.populate({});
+
+  const options = {
+    pagination: false,
+  };
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  let result1Month = { labels: [], datasets: { data: [] } };
+  result1Month = getCustomActivity1Month(result, result1Month);
+  res.json({ result });
+});
 const getDevices = catchAsync(async (req, res) => {
   // console.log(req.user);
   const filter = { userId: req.user._id };
@@ -68,4 +138,5 @@ module.exports = {
   updateDevice,
   deleteDevice,
   getTotalConsumptionByDevice,
+  getDeviceConsumptionBy1Month,
 };

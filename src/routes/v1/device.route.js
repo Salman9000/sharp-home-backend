@@ -23,4 +23,6 @@ router
 
 router.route('/getConsumptionByDevice/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
 
+router.route('/getDeviceConsumptionBy1Month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
+
 module.exports = router;
