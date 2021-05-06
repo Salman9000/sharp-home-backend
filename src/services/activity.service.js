@@ -26,6 +26,13 @@ const queryActivities = async (filter, options) => {
   return activities;
 };
 
+const queryAggregateActivities = async (aggregate, options) => {
+  // console.log(myAggregate);
+
+  const activities = await Activity.aggregatePaginate(aggregate, options);
+  return activities;
+};
+
 /**
  * Get activity by id
  * @param {ObjectId} id
@@ -68,6 +75,7 @@ const deleteActivityById = async (ActivityId) => {
 module.exports = {
   createActivity,
   queryActivities,
+  queryAggregateActivities,
   getActivityById,
   updateActivityById,
   deleteActivityById,
