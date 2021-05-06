@@ -3,10 +3,39 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { deviceService } = require('../services');
+const { Activity } = require('../models');
+// const { activityService } = require('../services');
 
 const createDevice = catchAsync(async (req, res) => {
   const device = await deviceService.createDevice(req.body, req.user._id);
   res.status(httpStatus.CREATED).send(device);
+});
+
+const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
+  const device = await deviceService.getDeviceById(req.params.deviceId);
+  if (!device) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Device not found');
+  }
+  const aggregate = Activity.aggregate([
+    { $match: { deviceId: device } },
+    {
+      $group: {
+        _id: device._id,
+        total: { $sum: `$overallConsumption` },
+      },
+    },
+  ]);
+  // aggregate.match({ deviceId: device });
+  // aggregate.group({
+  //   _id: null,
+  //   total: { $sum: '$overallConsumption' },
+  // });
+
+  // const options = {
+  //   pagination: false,
+  // };
+  // const result = await activityService.queryAggregateActivities(aggregate, options);
+  res.json({ aggregate });
 });
 
 const getDevices = catchAsync(async (req, res) => {
@@ -48,4 +77,5 @@ module.exports = {
   getDevice,
   updateDevice,
   deleteDevice,
+  getTotalConsumptionByDevice,
 };

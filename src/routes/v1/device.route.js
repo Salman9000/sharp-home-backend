@@ -13,14 +13,14 @@ router
   .delete()
   .patch();
 
-router
-  .route('/rooms/:roomId')
-  .get(auth('roomDevice'), deviceController.getRoomDevices)
-  
+router.route('/rooms/:roomId').get(auth('roomDevice'), deviceController.getRoomDevices);
+
 router
   .route('getDevice/:deviceId')
   .get(deviceController.getDevice)
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
+
+router.route('/getConsumptionByDevice/:deviceId').get(deviceController.getTotalConsumptionByDevice);
 
 module.exports = router;
