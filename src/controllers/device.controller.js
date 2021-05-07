@@ -49,46 +49,40 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
 });
 
 const getCustomActivity1Month = (resultArray, inputArray) => {
-  //{ labels: [], datasets: { data: [] } }
-  console.log(resultArray);
+  //{ labels: [], datasets:  [{ data: [] }, { data: [] }] }
   labels = [];
   datas = [];
   deviceArray = [];
 
-  count = 0;
-
   resultArray.docs.map((value) => {
-    labels.push('Week ' + value._id.week);
-    deviceArray.push(`${value._id.deviceId}`);
-    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`);
-  });
-  data2 = new Array(2).fill(new Array(1).fill(0));
-  // console.log(data2);
-  data = [];
-  const uniqueSet = new Set(labels);
-  labels = [...uniqueSet];
-  const uniqueDevice = new Set(deviceArray);
-  deviceArray = [...uniqueDevice];
-  inputArray.labels = labels;
-  count = 0;
-  datas.map((value) => {
-    var index = deviceArray.indexOf(value.split(' ')[1]);
-    //console.log(index);
-    //console.log(value.split(' ')[1] + ' ' + value.split(' ')[0]);
-    data2[index].push(value.split(' ')[0]);
-    //console.log(data2);
+    labels.push('Week ' + value._id.week); //add week to label array
+    deviceArray.push(`${value._id.deviceId}`); //add device to device array
+    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
-  // resultArray.docs.map((value) => {
-  //   labels.push('Week ' + value._id.week);
-  //   //datas.push((value.total / 1000).toFixed(2));
-  // });
-  console.log(data2);
-  // inputArray.datasets.data = datas;
-  overallConsumption = resultArray.docs
-    .map((value) => value.total)
-    .reduce((acc, current) => acc + current)
-    .toFixed(2);
+  data = [];
+  const uniqueSet = new Set(labels); //set unique lables
+  labels = [...uniqueSet];
+  const uniqueDevice = new Set(deviceArray); //set unqiue devices
+  deviceArray = [...uniqueDevice];
+  data2 = new Array(deviceArray.length).fill(new Array(0)); //create 2d array having length of number devices
+
+  datas.map((value) => {
+    var index = deviceArray.indexOf(value.split(' ')[1]); //get the index of device in the device array
+    data2[index] = [...data2[index], value.split(' ')[0]]; //insert data into data2 array
+  });
+
+  overallConsumption =
+    resultArray.docs
+      .map((value) => value.total)
+      .reduce((acc, current) => acc + current)
+      .toFixed(2) / 1000;
+
+  data2.map((value) => {
+    inputArray.datasets.push({ data: value }); //push the data eg. datasets:  [{ data: [] },]
+  });
+  inputArray.datasets.shift(); //remove the first empty element
+  inputArray.labels = labels; //rename label
   return { inputArray, overallConsumption };
 };
 const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
@@ -112,9 +106,9 @@ const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  let result1Month = { labels: [], datasets: { data: [] } };
+  let result1Month = { labels: [], datasets: [{ data: [] }] };
   result1Month = getCustomActivity1Month(result, result1Month);
-  res.json({ result });
+  res.json({ result1Month });
 });
 const getDevices = catchAsync(async (req, res) => {
   // console.log(req.user);
