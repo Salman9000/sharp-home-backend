@@ -16,14 +16,9 @@ const createDevice = catchAsync(async (req, res) => {
 const getTotalConsumptionAllDevices = catchAsync(async (req, res) => {
   const aggregate = Activity.aggregate([
     { $match: { userId: req.user._id } },
-    {
-      $group: {
-        _id: `$deviceId`,
-        total: { $sum: `$overallConsumption` },
-      },
-    },
+    { $group: { _id: '$deviceId', total: { $sum: '$overallConsumption' } } },
+    { $lookup: { from: 'devices', localField: '_id', foreignField: '_id', as: 'dev' } },
   ]);
-
   const options = {
     pagination: false,
   };
