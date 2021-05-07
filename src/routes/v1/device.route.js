@@ -16,12 +16,14 @@ router
 router.route('/rooms/:roomId').get(auth('roomDevice'), deviceController.getRoomDevices);
 
 router
-  .route('getDevice/:deviceId')
+  .route('/getDevice/:deviceId')
   .get(deviceController.getDevice)
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
 
 router.route('/getConsumptionByDevice/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
+
+router.route('/getDeviceConsumptionBy1Month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
 
 router.route('/getConsumptions').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
 module.exports = router;
