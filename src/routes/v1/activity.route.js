@@ -13,9 +13,9 @@ router
   .delete()
   .patch();
 
-router.route('/1Month').get(auth('getActivity'), activityController.getActivitiesBy1Month);
+router.route('/1month').get(auth('getActivity'), activityController.getActivitiesBy1Month);
 
-router.route('/7Days').get(auth('getActivity'), activityController.getActivitiesBy7Days);
+router.route('/7days').get(auth('getActivity'), activityController.getActivitiesBy7Days);
 
 router.route('/:day').get(auth('getActivity'), activityController.getActivitiesByOneDay);
 

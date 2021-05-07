@@ -151,4 +151,5 @@ module.exports = {
   deleteDevice,
   getTotalConsumptionByDevice,
   getDeviceConsumptionBy1Month,
+  getTotalConsumptionAllDevices,
 };

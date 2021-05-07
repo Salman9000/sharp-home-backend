@@ -125,9 +125,9 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
 const getActivitiesByOneDay = catchAsync(async (req, res) => {
   let today = new Date(2021, 2, 3);
   let lastDate;
-  if (req.params.day == 'Today') {
+  if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
-  } else if (req.params.day == 'Yesterday') {
+  } else if (req.params.day == 'yesterday') {
     lastDate = today;
     today = moment(today).subtract(24, 'hours');
   }
