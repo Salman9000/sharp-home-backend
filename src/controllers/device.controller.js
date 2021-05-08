@@ -110,8 +110,8 @@ const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result1Month = { labels: [], datasets: [{ data: [] }] };
-  result1Month = getCustomActivity1Month(result, result1Month);
-  res.json({ result1Month });
+  resultConsumption = getCustomActivity1Month(result, result1Month);
+  res.json({ resultConsumption });
 });
 
 const getCustomActivity7Days = (resultArray, inputArray) => {
@@ -183,8 +183,8 @@ const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result7Days = { labels: [], datasets: [{ data: [], stokeWidth: 2, color: '' }] };
-  result7Days = getCustomActivity7Days(result, result7Days);
-  res.json({ result7Days });
+  resultConsumption = getCustomActivity7Days(result, result7Days);
+  res.json({ resultConsumption });
 });
 
 const getCustomActivityOneDay = (resultArray, inputArray) => {
@@ -231,9 +231,9 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
 const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   let today = new Date(2021, 2, 3);
   let lastDate;
-  if (req.params.day == 'Today') {
+  if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
-  } else if (req.params.day == 'Yesterday') {
+  } else if (req.params.day == 'yesterday') {
     lastDate = today;
     today = moment(today).subtract(24, 'hours');
   }
@@ -268,8 +268,8 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let resultOneDay = { labels: [], datasets: [{ data: [] }] };
-  resultOneDay = getCustomActivityOneDay(result, resultOneDay);
-  res.json({ resultOneDay });
+  resultConsumption = getCustomActivityOneDay(result, resultOneDay);
+  res.json({ resultConsumption });
 });
 
 const getDevices = catchAsync(async (req, res) => {

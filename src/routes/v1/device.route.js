@@ -23,9 +23,9 @@ router
 
 router.route('/getConsumptionByDevice/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
 
-router.route('/getDeviceConsumptionBy1Month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
+router.route('/getDeviceConsumptionBy1month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
 
-router.route('/getDeviceConsumptionBy7Days').get(auth('getDevice'), deviceController.getDeviceConsumptionBy7Days);
+router.route('/getDeviceConsumptionBy7days').get(auth('getDevice'), deviceController.getDeviceConsumptionBy7Days);
 
 router.route('/getDeviceConsumptionByOneDay/:day').get(auth('getActivity'), deviceController.getDeviceConsumptionByOneDay);
 
