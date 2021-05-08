@@ -78,7 +78,7 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
       .toFixed(2) / 1000;
 
   data2.map((value) => {
-    inputArray.datasets.push({ data: value }); //push the data eg. datasets:  [{ data: [] },]
+    inputArray.datasets.push({ data: value, color: '', strokeWidth: 2 }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
   inputArray.labels = labels; //rename label
@@ -104,8 +104,6 @@ const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
     as: 'devices',
   });
   aggregate.sort({ '_id.deviceId': 1, '_id.week': 1, '_id.year': 1 });
-  //aggregate.unwind({ path: '$_id' });
-  // aggregate.populate({});
 
   const options = {
     pagination: false,
@@ -122,12 +120,6 @@ const getCustomActivity7Days = (resultArray, inputArray) => {
   datas = [];
   deviceArray = [];
   deviceName = [];
-  colorArray = [
-    (opacity = 1) => `rgba(255,0,0,${opacity})`,
-    (opacity = 1) => `rgba(0,0,102, ${opacity})`,
-    (opacity = 1) => `rgba(0,102,0, ${opacity})`,
-  ];
-  console.log(colorArray[0]);
   resultArray.docs.map((value) => {
     date = new Date(value._id.year, value._id.month - 1, value._id.day);
     labels.push(`${moment(date).format('dd')}/${moment(date).format('D')}`); //add week to label array
@@ -143,7 +135,6 @@ const getCustomActivity7Days = (resultArray, inputArray) => {
   deviceArray = [...uniqueDevice];
   const uniqueDeviceName = new Set(deviceName);
   deviceName = [...uniqueDeviceName];
-  console.log(deviceName);
   data2 = new Array(deviceArray.length).fill(new Array(0)); //create 2d array having length of number devices
 
   datas.map((value) => {
@@ -156,30 +147,12 @@ const getCustomActivity7Days = (resultArray, inputArray) => {
       .map((value) => value.total)
       .reduce((acc, current) => acc + current)
       .toFixed(2) / 1000;
-  count1 = 0;
   inputArray.labels = labels;
-  colorfunc = {
-    col: function color() {
-      (opacity = 1) => `rgba(134, 65, 244, ${opacity})`;
-    },
-  };
   data2.map((value) => {
-    inputArray.datasets.push({
-      data: value,
-      color: colorfunc.col,
-      strokeWidth: 2,
-    });
-    //push the data eg. datasets:  [{ data: [] },]
-    count1 = count1 + 1;
+    inputArray.datasets.push({ data: value, color: '', strokeWidth: 2 }); //push the data eg. datasets:  [{ data: [] },]
   });
-  // console.log(inputArray.datasets, 1);
   inputArray.datasets.shift(); //remove the first empty element
-  // for (var i in inputArray.datasets) {
-  //   // inputArray.datasets[i].color = (opacity = 1) => `rgba(0,255,0,${opacity})`;
-  // }
   //rename label
-  // inputArray.datasets.color = (opacity = 1) => `rgba(255,0,0,${opacity})`;
-  console.log(inputArray);
   return { inputArray, overallConsumption, deviceArray, deviceName };
 };
 
@@ -204,19 +177,13 @@ const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
     foreignField: '_id',
     as: 'devices',
   });
-  // aggregate.lookup();
-  // console.log(aggregate._pipeline.lookup);
   aggregate.sort({ '_id.deviceId': 1, '_id.month': 1, '_id.day': 1 });
-  //aggregate.unwind({ path: '$_id' });
-  // aggregate.populate({});
-
   const options = {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result7Days = { labels: [], datasets: [{ data: [], stokeWidth: 2, color: '' }] };
   result7Days = getCustomActivity7Days(result, result7Days);
-  console.log(result7Days.inputArray.datasets);
   res.json({ result7Days });
 });
 
@@ -253,12 +220,11 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
       .map((value) => value.total)
       .reduce((acc, current) => acc + current)
       .toFixed(2) / 1000;
-
+  inputArray.labels = labels; //rename label
   data2.map((value) => {
-    inputArray.datasets.push({ data: value, color: (opacity = 1) => `rgba(255,0,0,${opacity})` }); //push the data eg. datasets:  [{ data: [] },]
+    inputArray.datasets.push({ data: value, color: '', strokeWidth: 2 }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
-  inputArray.labels = labels; //rename label
   return { inputArray, overallConsumption, deviceArray, deviceName };
 };
 
@@ -296,10 +262,6 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
     as: 'devices',
   });
 
-  // aggregate.group({
-  //   _id: null,
-
-  // });
   aggregate.sort({ '_id.deviceId': 1, '_id.day': -1, '_id.hour': 1 });
   const options = {
     pagination: false,
