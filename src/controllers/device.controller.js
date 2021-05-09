@@ -121,20 +121,28 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
   return { inputArray, overallConsumption, deviceArray, deviceName };
 };
 const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
-  // console.log(req.params);
-  console.log(req.query);
   let today = new Date(2021, 2, 3);
-  console.log(today);
   let today2 = moment(today).format('D MMMM');
-  console.log(today2);
   let lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
-
-  aggregate.match({
-    userId: req.user._id,
-    startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
   });
+  if (deviceArray.length < 1) {
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
+
   aggregate.group({
     _id: {
       week: { $week: '$startDate' },
@@ -209,7 +217,22 @@ const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
   aggregate.group({
     _id: {
       month: { $month: '$startDate' },
@@ -291,7 +314,22 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
     today2 = moment(today).format('D MMMM');
   }
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
   aggregate.unwind({ path: '$activity' });
   aggregate.group({
     _id: {
