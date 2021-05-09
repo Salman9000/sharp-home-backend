@@ -6,6 +6,7 @@ const { deviceService } = require('../services');
 const { Activity } = require('../models');
 const { Device } = require('../models');
 const { activityService } = require('../services');
+const { ObjectId } = require('mongodb');
 var moment = require('moment');
 const { count } = require('../models/token.model');
 // const { deviceService } = require('../services');
@@ -39,6 +40,41 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
   ]);
   const options = {
     pagination: false,
+  };
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  res.json({ result });
+});
+
+const getCustomDeviceConsumption = catchAsync(async (req, res) => {
+  console.log(req.params);
+  console.log(new Date(2021, 2, 3));
+  console.log(new Date(2021, 2, 1));
+  let aggregate = Activity.aggregate();
+  aggregate.match({
+    userId: req.user._id,
+    deviceId: ObjectId(req.params.deviceId),
+    // startDate: { $gte: req.params.endDate, $lte: req.params.startDate },
+  });
+  // aggregate.group({
+  //   _id: {
+  //     day: { $dayOfMonth: '$startDate' },
+  //     month: { $month: '$startDate' },
+  //     year: { $year: '$startDate' },
+  //   },
+  //   total: { $sum: '$overallConsumption' },
+  // });
+  // aggregate.lookup({
+  //   from: 'devices',
+  //   localField: '_id.deviceId',
+  //   foreignField: '_id',
+  //   as: 'devices',
+  // });
+  // aggregate.sort({ '_id.powerRating': -1, '_id.deviceId': -1, '_id.week': 1, '_id.year': 1 });
+
+  const options = {
+    page: 1,
+    // pagination: false,
+    limit: 1,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   res.json({ result });
@@ -85,15 +121,26 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
   return { inputArray, overallConsumption, deviceArray, deviceName };
 };
 const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
-  var today = new Date(2021, 2 - 1, 10);
-  var lastDate = moment(today).subtract(1, 'month');
+  // console.log(req.params);
+  console.log(req.query);
+  let today = new Date(2021, 2, 3);
+  console.log(today);
+  let today2 = moment(today).format('D MMMM');
+  console.log(today2);
+  let lastDate = moment(today).subtract(1, 'month');
+  let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+
+  aggregate.match({
+    userId: req.user._id,
+    startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+  });
   aggregate.group({
     _id: {
       week: { $week: '$startDate' },
       year: { $year: '$startDate' },
       deviceId: '$deviceId',
+      powerRating: '$powerRating',
     },
     total: { $sum: '$overallConsumption' },
   });
@@ -103,7 +150,7 @@ const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
     foreignField: '_id',
     as: 'devices',
   });
-  aggregate.sort({ '_id.deviceId': 1, '_id.week': 1, '_id.year': 1 });
+  aggregate.sort({ '_id.powerRating': -1, '_id.deviceId': -1, '_id.week': 1, '_id.year': 1 });
 
   const options = {
     pagination: false,
@@ -111,7 +158,7 @@ const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result1Month = { labels: [], datasets: [{ data: [] }] };
   resultConsumption = getCustomActivity1Month(result, result1Month);
-  res.json({ resultConsumption });
+  res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
 });
 
 const getCustomActivity7Days = (resultArray, inputArray) => {
@@ -157,8 +204,10 @@ const getCustomActivity7Days = (resultArray, inputArray) => {
 };
 
 const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
-  var today = new Date(2021, 2 - 1, 10);
-  var lastDate = moment(today).subtract(7, 'days');
+  let today = new Date(2021, 2, 3);
+  let today2 = moment(today).format('D MMMM');
+  let lastDate = moment(today).subtract(7, 'days');
+  let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
   aggregate.group({
@@ -184,7 +233,7 @@ const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result7Days = { labels: [], datasets: [{ data: [], stokeWidth: 2, color: '' }] };
   resultConsumption = getCustomActivity7Days(result, result7Days);
-  res.json({ resultConsumption });
+  res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
 });
 
 const getCustomActivityOneDay = (resultArray, inputArray) => {
@@ -215,6 +264,7 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
     data2[index] = [...data2[index], value.split(' ')[0]]; //insert data into data2 array
   });
 
+  console.log(data2);
   overallConsumption =
     resultArray.docs
       .map((value) => value.total)
@@ -225,6 +275,7 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
     inputArray.datasets.push({ data: value, color: '', strokeWidth: 2 }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
+  console.log(inputArray);
   return { inputArray, overallConsumption, deviceArray, deviceName };
 };
 
@@ -233,9 +284,11 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   let lastDate;
   if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
+    today2 = moment(today).format('D MMMM');
   } else if (req.params.day == 'yesterday') {
     lastDate = today;
     today = moment(today).subtract(24, 'hours');
+    today2 = moment(today).format('D MMMM');
   }
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
@@ -269,7 +322,7 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let resultOneDay = { labels: [], datasets: [{ data: [] }] };
   resultConsumption = getCustomActivityOneDay(result, resultOneDay);
-  res.json({ resultConsumption });
+  res.json({ resultConsumption, startDate: today2 });
 });
 
 const getDevices = catchAsync(async (req, res) => {
@@ -316,4 +369,5 @@ module.exports = {
   getTotalConsumptionAllDevices,
   getDeviceConsumptionBy7Days,
   getDeviceConsumptionByOneDay,
+  getCustomDeviceConsumption,
 };

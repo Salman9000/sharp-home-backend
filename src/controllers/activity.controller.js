@@ -68,9 +68,9 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
 };
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
   var today = new Date(2021, 2, 3);
-  let today2 = moment(today).format('d MMMM');
+  let today2 = moment(today).format('D MMMM');
   var lastDate = moment(today).subtract(7, 'days');
-  let lastDate2 = moment(lastDate).format('d MMMM');
+  let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
   aggregate.group({
@@ -91,10 +91,10 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
   res.json({ result7Days, startDate: today2, endDate: lastDate2 });
 });
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
-  var today = new Date(2021, 2 - 1, 10);
-  let today2 = moment(today).format('d MMMM');
+  let today = new Date(2021, 2, 3);
+  let today2 = moment(today).format('D MMMM');
   var lastDate = moment(today).subtract(1, 'month');
-  let lastDate2 = moment(lastDate).format('d MMMM');
+  let lastDate2 = moment(lastDate).format('D MMMM');
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
   aggregate.group({
@@ -150,11 +150,11 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   let today2 = '';
   if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
-    today2 = moment(today).format('d MMMM');
+    today2 = moment(today).format('D MMMM');
   } else if (req.params.day == 'yesterday') {
     lastDate = today;
-    today2 = moment(today).format('d MMMM');
     today = moment(today).subtract(24, 'hours');
+    today2 = moment(today).format('D MMMM');
   }
 
   let aggregate = Activity.aggregate();
