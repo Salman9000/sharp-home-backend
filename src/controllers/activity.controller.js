@@ -33,16 +33,20 @@ const getActivities = catchAsync(async (req, res) => {
 const getCustomActivity = (resultArray, inputArray) => {
   labels = [];
   datas = [];
+  labels.push(' ');
+  datas.push((resultArray.docs[0].total / 1000).toFixed(2));
   resultArray.docs.map((value) => {
     date = new Date(value._id.year, value._id.month - 1, value._id.day);
 
     labels.push(`${moment(date).format('dd')}/${moment(date).format('D')}`);
     datas.push((value.total / 1000).toFixed(2));
   });
+  labels.push(' ');
+  datas.push((resultArray.docs[resultArray.docs.length - 1].total / 1000).toFixed(2));
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
@@ -57,14 +61,16 @@ const getCustomActivity1Month = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
 };
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
   var today = new Date(2021, 2, 3);
+  let today2 = moment(today).format('d MMMM');
   var lastDate = moment(today).subtract(7, 'days');
+  let lastDate2 = moment(lastDate).format('d MMMM');
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
   aggregate.group({
@@ -82,11 +88,13 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result7Days = { labels: [], datasets: { data: [] } };
   result7Days = getCustomActivity(result, result7Days);
-  res.json({ result7Days });
+  res.json({ result7Days, startDate: today2, endDate: lastDate2 });
 });
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
   var today = new Date(2021, 2 - 1, 10);
+  let today2 = moment(today).format('d MMMM');
   var lastDate = moment(today).subtract(1, 'month');
+  let lastDate2 = moment(lastDate).format('d MMMM');
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
   aggregate.group({
@@ -103,20 +111,35 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result1Month = { labels: [], datasets: { data: [] } };
   result1Month = getCustomActivity1Month(result, result1Month);
-  res.json({ result1Month });
+  res.json({ result1Month, startDate: today2, endDate: lastDate2 });
 });
 
 const getCustomActivityOneDay = (resultArray, inputArray) => {
   labels = [];
   datas = [];
+  labels.push(' ');
+  datas.push((resultArray.docs[0].total / 1000).toFixed(2));
   resultArray.docs.map((value) => {
-    labels.push(value._id.hour + ':00');
+    if (value._id.hour >= 12) {
+      if (value._id.hour == 0) {
+        value._id.hour = 12;
+      }
+      labels.push(Math.abs(value._id.hour - 12) + 'pm');
+    } else {
+      if (value._id.hour == 0) {
+        value._id.hour = 12;
+      }
+      labels.push(value._id.hour + 'am');
+    }
+
     datas.push((value.total / 1000).toFixed(2));
   });
+  labels.push(' ');
+  datas.push((resultArray.docs[resultArray.docs.length - 1].total / 1000).toFixed(2));
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
@@ -124,13 +147,16 @@ const getCustomActivityOneDay = (resultArray, inputArray) => {
 
 const getActivitiesByOneDay = catchAsync(async (req, res) => {
   let today = new Date(2021, 2, 3);
-  let lastDate;
+  let today2 = '';
   if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
+    today2 = moment(today).format('d MMMM');
   } else if (req.params.day == 'yesterday') {
     lastDate = today;
+    today2 = moment(today).format('d MMMM');
     today = moment(today).subtract(24, 'hours');
   }
+
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
   aggregate.unwind({ path: '$activity' });
@@ -164,7 +190,7 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let resultOneDay = { labels: [], datasets: { data: [] } };
   resultOneDay = getCustomActivityOneDay(result, resultOneDay);
-  res.json({ resultOneDay });
+  res.json({ resultOneDay, startDate: today2 });
 });
 const getActivity = catchAsync(async (req, res) => {
   const activity = await activityService.getActivityById(req.params.activityId);
