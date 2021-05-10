@@ -46,38 +46,112 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
 });
 
 const getCustomDeviceConsumption = catchAsync(async (req, res) => {
-  console.log(req.params);
-  console.log(new Date(2021, 2, 3));
-  console.log(new Date(2021, 2, 1));
+  today = moment(new Date(2021, 2, 3));
+  let today2 = moment(today).format('D MMMM');
+  lastDate = moment(new Date(2021, 2, 2));
+  let lastDate2 = moment(lastDate).format('D MMMM');
+  diff = today.diff(lastDate, 'days');
   let aggregate = Activity.aggregate();
-  aggregate.match({
-    userId: req.user._id,
-    deviceId: ObjectId(req.params.deviceId),
-    // startDate: { $gte: req.params.endDate, $lte: req.params.startDate },
+  let deviceArray = Object.values(req.query);
+  let functionSwitch = '';
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
   });
-  // aggregate.group({
-  //   _id: {
-  //     day: { $dayOfMonth: '$startDate' },
-  //     month: { $month: '$startDate' },
-  //     year: { $year: '$startDate' },
-  //   },
-  //   total: { $sum: '$overallConsumption' },
-  // });
-  // aggregate.lookup({
-  //   from: 'devices',
-  //   localField: '_id.deviceId',
-  //   foreignField: '_id',
-  //   as: 'devices',
-  // });
-  // aggregate.sort({ '_id.powerRating': -1, '_id.deviceId': -1, '_id.week': 1, '_id.year': 1 });
+  console.log(deviceArray);
+  if (deviceArray.length < 1) {
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
+  if (diff >= 14) {
+    aggregate.group({
+      _id: {
+        week: { $week: '$startDate' },
+        year: { $year: '$startDate' },
+        deviceId: '$deviceId',
+        powerRating: '$powerRating',
+      },
+      total: { $sum: '$overallConsumption' },
+    });
+    aggregate.lookup({
+      from: 'devices',
+      localField: '_id.deviceId',
+      foreignField: '_id',
+      as: 'devices',
+    });
+    aggregate.sort({ '_id.powerRating': -1, '_id.deviceId': -1, '_id.week': 1, '_id.year': 1 });
+    functionSwitch = 'Month';
+  } else if (diff > 1 && diff < 14) {
+    aggregate.group({
+      _id: {
+        month: { $month: '$startDate' },
+        day: { $dayOfMonth: '$startDate' },
+        year: { $year: '$startDate' },
+        deviceId: '$deviceId',
+      },
+
+      total: { $sum: '$overallConsumption' },
+    });
+    aggregate.lookup({
+      from: 'devices',
+      localField: '_id.deviceId',
+      foreignField: '_id',
+      as: 'devices',
+    });
+    aggregate.sort({ '_id.deviceId': 1, '_id.month': 1, '_id.day': 1 });
+    functionSwitch = 'Day';
+  } else {
+    aggregate.unwind({ path: '$activity' });
+    aggregate.group({
+      _id: {
+        month: { $month: '$activity.timestamp' },
+        day: { $dayOfMonth: '$activity.timestamp' },
+        year: { $year: '$activity.timestamp' },
+        hour: { $hour: '$activity.timestamp' },
+        deviceId: '$deviceId',
+      },
+      min: { $min: '$activity.overall' },
+      max: { $max: '$activity.overall' },
+    });
+
+    aggregate.project({
+      total: { $subtract: ['$max', '$min'] },
+    });
+    aggregate.lookup({
+      from: 'devices',
+      localField: '_id.deviceId',
+      foreignField: '_id',
+      as: 'devices',
+    });
+
+    aggregate.sort({ '_id.deviceId': 1, '_id.day': -1, '_id.hour': 1 });
+    functionSwitch = 'Hour';
+  }
 
   const options = {
-    page: 1,
-    // pagination: false,
-    limit: 1,
+    pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  res.json({ result });
+  let customResult = { labels: [], datasets: [{ data: [] }] };
+  switch (functionSwitch) {
+    case 'Month':
+      resultConsumption = getCustomActivity1Month(result, customResult);
+      res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
+    case 'Day':
+      resultConsumption = getCustomActivity7Days(result, customResult);
+      res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
+    case 'Hour':
+      resultConsumption = getCustomActivityOneDay(result, customResult);
+      res.json({ resultConsumption, startDate: today2 });
+  }
+  // res.json({ result });
 });
 
 const getCustomActivity1Month = (resultArray, inputArray) => {

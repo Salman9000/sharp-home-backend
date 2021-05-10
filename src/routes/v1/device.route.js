@@ -31,6 +31,6 @@ router.route('/getDeviceConsumptionByOneDay/:day').get(auth('getActivity'), devi
 
 router.route('/getConsumptions').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
 
-router.route('/getConsumptionsByDevice/').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
+router.route('/getConsumptionsByDevice').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
 
 module.exports = router;
