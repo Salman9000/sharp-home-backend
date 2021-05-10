@@ -395,13 +395,13 @@ const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   if (deviceArray.length < 1) {
     aggregate.match({
       userId: req.user._id,
-      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
     });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
     });
   }
   aggregate.unwind({ path: '$activity' });
