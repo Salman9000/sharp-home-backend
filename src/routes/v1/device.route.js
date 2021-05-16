@@ -21,16 +21,16 @@ router
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
 
-router.route('/getConsumptionByDevice/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
+router.route('/total/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
 
-router.route('/getDeviceConsumptionBy1month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
+router.route('/1month').get(auth('getDevice'), deviceController.getDeviceConsumptionBy1Month);
 
-router.route('/getDeviceConsumptionBy7days').get(auth('getDevice'), deviceController.getDeviceConsumptionBy7Days);
+router.route('/7days').get(auth('getDevice'), deviceController.getDeviceConsumptionBy7Days);
 
-router.route('/getDeviceConsumptionByOneDay/:day').get(auth('getActivity'), deviceController.getDeviceConsumptionByOneDay);
+router.route('/oneday/:day').get(auth('getActivity'), deviceController.getDeviceConsumptionByOneDay);
 
-router.route('/getConsumptions').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
+router.route('/total').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
 
-router.route('/getConsumptionsByDevice').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
+router.route('/customConsumption').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
 
 module.exports = router;
