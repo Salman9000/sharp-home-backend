@@ -3,11 +3,15 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { activityService } = require('../services');
+const { roomService } = require('../services');
 var moment = require('moment');
 const { ConsoleTransportOptions } = require('winston/lib/winston/transports');
 const { Activity } = require('../models');
+const { Room } = require('../models');
 const { response } = require('express');
 const { data } = require('../config/logger');
+const { isValidObjectId } = require('mongoose');
+const { ObjectId } = require('mongodb');
 
 const createActivity = catchAsync(async (req, res) => {
   const activity = await activityService.createActivity(req.body, req.user._id);
@@ -20,6 +24,21 @@ const getActivities = catchAsync(async (req, res) => {
   const result = await activityService.queryActivities(filter, options);
   res.send(result);
 });
+
+const getRoomDevices = async (userId, roomArray) => {
+  let aggregate = Room.aggregate();
+  aggregate.match({ userId: userId, _id: { $in: roomArray } });
+  const options = {
+    pagination: false,
+  };
+  const result = await roomService.queryAggregateRooms(aggregate, options);
+  let deviceArray = [];
+  result.docs.map((value) => {
+    deviceArray.push(value.devices);
+  });
+  deviceArray = [deviceArray.join()];
+  return deviceArray;
+};
 
 // const getActivitiesByToday = catchAsync(async (req, res) => {
 //   var inputDate = Date();
@@ -43,7 +62,12 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     today = moment(today).subtract(24, 'hours');
     today2 = moment(today).format('Do MMMM');
   }
-
+  console.log(req.query);
+  let roomArray = Object.values(req.query);
+  roomArray = roomArray.map((value) => {
+    return ObjectId(value);
+  });
+  deviceArray = await getRoomDevices(req.user._id, roomArray);
   let aggregate = Activity.aggregate();
   aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
   aggregate.unwind({ path: '$activity' });
@@ -61,6 +85,12 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   aggregate.project({
     difference: { $subtract: ['$max', '$min'] },
   });
+  aggregate.lookup({
+    from: 'devices',
+    localField: '_id.deviceId',
+    foreignField: '_id',
+    as: 'devices',
+  });
   aggregate.group({
     _id: {
       month: '$_id.month1',
@@ -77,7 +107,8 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let resultOneDay = { labels: [], datasets: { data: [] } };
   resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
-  res.json({ resultOneDay, startDate: today2 });
+
+  res.json({ result });
 });
 
 const getActivitiesByOneDayHelper = (resultArray, inputArray) => {

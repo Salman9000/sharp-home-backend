@@ -25,7 +25,10 @@ const queryRooms = async (filter, options) => {
   const rooms = await Room.paginate(filter, options);
   return rooms;
 };
-
+const queryAggregateRooms = async (aggregate, options) => {
+  const rooms = await Room.aggregatePaginate(aggregate, options);
+  return rooms;
+};
 /**
  * Get room by id
  * @param {ObjectId} id
@@ -71,4 +74,5 @@ module.exports = {
   getRoomById,
   updateRoomById,
   deleteRoomById,
+  queryAggregateRooms,
 };
