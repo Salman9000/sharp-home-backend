@@ -19,6 +19,7 @@ const createDevice = async (deviceBody, userId) => {
   return device;
 };
 
+
 /**
  * Query for devices
  * @param {Object} filter - Mongo filter
@@ -32,6 +33,7 @@ const queryDevices = async (filter, options) => {
   const devices = await Device.paginate(filter, options);
   return devices;
 };
+
 
 /**
  * Get device by id

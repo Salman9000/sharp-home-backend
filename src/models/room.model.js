@@ -40,7 +40,6 @@ const roomSchema = mongoose.Schema(
 roomSchema.plugin(toJSON);
 roomSchema.plugin(paginate);
 roomSchema.plugin(aggregatePaginate);
-
 /*
  * Check if email is taken
  * @param {string} email - The user's email
