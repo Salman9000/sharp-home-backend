@@ -117,7 +117,7 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   let resultOneDay = { labels: [], datasets: { data: [] } };
   resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
 
-  res.json({ result });
+  res.json({ resultOneDay });
 });
 
 const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
