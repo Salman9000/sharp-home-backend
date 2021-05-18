@@ -2,8 +2,8 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { deviceService } = require('../services');
-const { Activity } = require('../models');
+const { deviceService, roomService } = require('../services');
+const { Activity, Room } = require('../models');
 const { Device } = require('../models');
 const { activityService } = require('../services');
 const { ObjectId } = require('mongodb');
@@ -16,7 +16,6 @@ const createDevice = catchAsync(async (req, res) => {
 });
 
 const getTotalConsumptionAllDevices = catchAsync(async (req, res) => {
-  console.log('here');
   const aggregate = Activity.aggregate([
     { $match: { userId: req.user._id } },
     { $group: { _id: '$deviceId', total: { $sum: '$overallConsumption' } } },
@@ -156,7 +155,6 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
     inputArray.datasets.push({ data: value }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
-  console.log(inputArray);
   return { inputArray, overallConsumption, overallConsumptionByDevice, deviceArray, deviceName };
 };
 
@@ -246,7 +244,6 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
     inputArray.datasets.push({ data: value }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
-  console.log(inputArray);
   return { inputArray, overallConsumption, overallConsumptionByDevice, deviceArray, deviceName };
 };
 
@@ -336,7 +333,6 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
     inputArray.datasets.push({ data: value }); //push the data eg. datasets:  [{ data: [] },]
   });
   inputArray.datasets.shift(); //remove the first empty element
-  console.log(inputArray);
   return { inputArray, overallConsumption, overallConsumptionByDevice, deviceArray, deviceName };
 };
 
@@ -458,10 +454,23 @@ const getDevices = catchAsync(async (req, res) => {
 });
 
 const getRoomDevices = catchAsync(async (req, res) => {
-  const filter = { userId: req.user._id, room: req.params.roomId };
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await deviceService.queryDevices(filter, options);
-  res.send(result);
+  let aggregate = Room.aggregate();
+  let roomArray = Object.values(req.query);
+  roomArray = roomArray.map((value) => {
+    return ObjectId(value);
+  });
+  aggregate.match({ userId: req.user._id, _id: { $in: roomArray } });
+  const options = {
+    pagination: false,
+  };
+  const result = await roomService.queryAggregateRooms(aggregate, options);
+  let deviceArray = [];
+  result.docs.map((value) =>
+    value.devices.map((newValue) => {
+      deviceArray.push(newValue);
+    })
+  );
+  res.send(deviceArray);
 });
 
 const getDevice = catchAsync(async (req, res) => {

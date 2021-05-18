@@ -33,4 +33,6 @@ router.route('/total').get(auth('getDevice'), deviceController.getTotalConsumpti
 
 router.route('/customConsumption').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
 
+router.route('/rooms').get(auth('getDevice'), deviceController.getRoomDevices);
+
 module.exports = router;

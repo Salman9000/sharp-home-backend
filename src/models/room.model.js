@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON, paginate } = require('./plugins');
+const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const roomSchema = mongoose.Schema(
   {
@@ -39,6 +39,7 @@ const roomSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 roomSchema.plugin(toJSON);
 roomSchema.plugin(paginate);
+roomSchema.plugin(aggregatePaginate);
 
 /*
  * Check if email is taken

@@ -8,6 +8,7 @@ const { ConsoleTransportOptions } = require('winston/lib/winston/transports');
 const { Activity } = require('../models');
 const { response } = require('express');
 const { data } = require('../config/logger');
+const { ObjectId } = require('mongodb');
 
 const createActivity = catchAsync(async (req, res) => {
   const activity = await activityService.createActivity(req.body, req.user._id);
@@ -43,9 +44,24 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     today = moment(today).subtract(24, 'hours');
     today2 = moment(today).format('Do MMMM');
   }
-
+  //  else {
+  // return res.status(500).json({ message: 'No route found' });
+  // }
+  //
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(today), $lt: new Date(lastDate) } });
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(today), $lt: new Date(lastDate) } });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
+    });
+  }
   aggregate.unwind({ path: '$activity' });
   aggregate.group({
     _id: {
@@ -85,7 +101,6 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
   datas = [];
   labels.push(' ');
   datas.push((resultArray.docs[0].total / 1000).toFixed(2));
-  console.log(resultArray.docs);
   resultArray.docs.map((value) => {
     if (value._id.hour >= 12) {
       if (Math.abs(value._id.hour - 12) == 0) {
@@ -119,7 +134,19 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('Do MMMM');
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
   aggregate.group({
     _id: {
       month: { $month: '$startDate' },
@@ -166,7 +193,19 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
   var lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('Do MMMM');
   let aggregate = Activity.aggregate();
-  aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
   aggregate.group({
     _id: {
       week: { $week: '$startDate' },
