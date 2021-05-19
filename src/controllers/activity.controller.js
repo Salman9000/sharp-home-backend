@@ -114,9 +114,10 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  let resultOneDay = { labels: [], datasets: { data: [] } };
-  resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
-  res.json({ resultOneDay, startDate: today2 });
+  // let resultOneDay = { labels: [], datasets: { data: [] } };
+  res.json(result);
+  // resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
+  // res.json({ resultOneDay, startDate: today2 });
 });
 
 const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
