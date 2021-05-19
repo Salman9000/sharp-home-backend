@@ -71,7 +71,10 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(today), $lt: new Date(lastDate) } });
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gt: new Date(today), $lt: new Date('2021-03-03T19:00:00.000Z') },
+    });
   } else {
     aggregate.match({
       userId: req.user._id,
@@ -83,8 +86,8 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     pagination: false,
   };
   console.log(req.user);
-  console.log(today);
-  console.log(lastDate);
+  // console.log(new Date(today));
+  // console.log(new Date(lastDate));
   const result = await activityService.queryAggregateActivities(aggregate, options);
   // aggregate.unwind({ path: '$activity' });
   // aggregate.group({
