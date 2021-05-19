@@ -71,7 +71,7 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id });
+    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(today) } });
   } else {
     aggregate.match({
       userId: req.user._id,
