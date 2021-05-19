@@ -79,41 +79,42 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
       startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
     });
   }
-  aggregate.unwind({ path: '$activity' });
-  aggregate.group({
-    _id: {
-      month1: { $month: '$activity.timestamp' },
-      day1: { $dayOfMonth: '$activity.timestamp' },
-      year1: { $year: '$activity.timestamp' },
-      hour1: { $hour: '$activity.timestamp' },
-      deviceId: '$deviceId',
-    },
-    min: { $min: '$activity.overall' },
-    max: { $max: '$activity.overall' },
-  });
-  aggregate.project({
-    difference: { $subtract: ['$max', '$min'] },
-  });
-  aggregate.lookup({
-    from: 'devices',
-    localField: '_id.deviceId',
-    foreignField: '_id',
-    as: 'devices',
-  });
-  aggregate.group({
-    _id: {
-      month: '$_id.month1',
-      day: '$_id.day1',
-      year: '$_id.year1',
-      hour: '$_id.hour1',
-    },
-    total: { $sum: '$difference' },
-  });
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  // aggregate.unwind({ path: '$activity' });
+  // aggregate.group({
+  //   _id: {
+  //     month1: { $month: '$activity.timestamp' },
+  //     day1: { $dayOfMonth: '$activity.timestamp' },
+  //     year1: { $year: '$activity.timestamp' },
+  //     hour1: { $hour: '$activity.timestamp' },
+  //     deviceId: '$deviceId',
+  //   },
+  //   min: { $min: '$activity.overall' },
+  //   max: { $max: '$activity.overall' },
+  // });
+  // aggregate.project({
+  //   difference: { $subtract: ['$max', '$min'] },
+  // });
+  // aggregate.lookup({
+  //   from: 'devices',
+  //   localField: '_id.deviceId',
+  //   foreignField: '_id',
+  //   as: 'devices',
+  // });
+  // aggregate.group({
+  //   _id: {
+  //     month: '$_id.month1',
+  //     day: '$_id.day1',
+  //     year: '$_id.year1',
+  //     hour: '$_id.hour1',
+  //   },
+  //   total: { $sum: '$difference' },
+  // });
   aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
   const options = {
     pagination: false,
   };
-  const result = await activityService.queryAggregateActivities(aggregate, options);
+  // const result = await activityService.queryAggregateActivities(aggregate, options);
   // let resultOneDay = { labels: [], datasets: { data: [] } };
   res.json(result);
   // resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
