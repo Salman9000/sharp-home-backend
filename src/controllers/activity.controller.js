@@ -79,6 +79,9 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
       startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
     });
   }
+  const options = {
+    pagination: false,
+  };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   // aggregate.unwind({ path: '$activity' });
   // aggregate.group({
@@ -110,10 +113,8 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   //   },
   //   total: { $sum: '$difference' },
   // });
-  aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
-  const options = {
-    pagination: false,
-  };
+  // aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
+
   // const result = await activityService.queryAggregateActivities(aggregate, options);
   // let resultOneDay = { labels: [], datasets: { data: [] } };
   res.json(result);
