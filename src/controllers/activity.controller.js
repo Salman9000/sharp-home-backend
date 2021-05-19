@@ -82,6 +82,9 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   const options = {
     pagination: false,
   };
+  console.log(req.user);
+  console.log(today);
+  console.log(lastDate);
   const result = await activityService.queryAggregateActivities(aggregate, options);
   // aggregate.unwind({ path: '$activity' });
   // aggregate.group({
