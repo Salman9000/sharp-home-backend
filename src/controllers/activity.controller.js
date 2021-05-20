@@ -76,7 +76,7 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
+      startDate: { $gte: new Date(today), $lt: new Date(lastDate) },
     });
   }
   aggregate.unwind({ path: '$activity' });
@@ -162,12 +162,12 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lt: new Date(today) } });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
     });
   }
   aggregate.group({
@@ -221,12 +221,12 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(lastDate), $lt: new Date(today) } });
+    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lt: new Date(today) } });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gt: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
     });
   }
   aggregate.group({
