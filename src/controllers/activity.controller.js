@@ -118,6 +118,107 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
   res.json({ resultOneDay, startDate: today2 });
 });
+const getActivitiesByOneDay = catchAsync(async (req, res) => {
+  let today = new Date(2021, 2, 3);
+  let today2 = '';
+  let lastDate = '';
+  if (req.params.day == 'today') {
+    lastDate = moment(today).add(24, 'hours');
+    today2 = moment(today).format('Do MMMM');
+  } else if (req.params.day == 'yesterday') {
+    lastDate = today;
+    today = moment(today).subtract(24, 'hours');
+    today2 = moment(today).format('Do MMMM');
+  }
+  //  else {
+  // return res.status(500).json({ message: 'No route found' });
+  // }
+  //
+  let aggregate = Activity.aggregate();
+  let deviceArray = Object.values(req.query);
+  deviceArray = deviceArray.map((value) => {
+    return ObjectId(value);
+  });
+  if (deviceArray.length < 1) {
+    aggregate.match({ userId: req.user._id, startDate: { $gt: new Date(today), $lt: new Date(lastDate) } });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gt: new Date(today), $lt: new Date(lastDate) },
+    });
+  }
+  aggregate.unwind({ path: '$activity' });
+  aggregate.group({
+    _id: {
+      month1: { $month: '$activity.timestamp' },
+      day1: { $dayOfMonth: '$activity.timestamp' },
+      year1: { $year: '$activity.timestamp' },
+      hour1: { $hour: '$activity.timestamp' },
+      deviceId: '$deviceId',
+    },
+    min: { $min: '$activity.overall' },
+    max: { $max: '$activity.overall' },
+  });
+  aggregate.project({
+    difference: { $subtract: ['$max', '$min'] },
+  });
+  aggregate.lookup({
+    from: 'devices',
+    localField: '_id.deviceId',
+    foreignField: '_id',
+    as: 'devices',
+  });
+  aggregate.group({
+    _id: {
+      month: '$_id.month1',
+      day: '$_id.day1',
+      year: '$_id.year1',
+      hour: '$_id.hour1',
+    },
+    total: { $sum: '$difference' },
+  });
+  aggregate.sort({ '_id.day': -1, '_id.hour': 1 });
+  const options = {
+    pagination: false,
+  };
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  let resultOneDay = { labels: [], datasets: { data: [] } };
+  resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
+  res.json({ resultOneDay, startDate: today2 });
+});
+
+const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
+  labels = [];
+  datas = [];
+  labels.push(' ');
+  datas.push((resultArray.docs[0].total / 1000).toFixed(2));
+  resultArray.docs.map((value) => {
+    if (value._id.hour >= 12) {
+      if (Math.abs(value._id.hour - 12) == 0) {
+        labels.push('12pm');
+      } else {
+        labels.push(Math.abs(value._id.hour - 12) + 'pm');
+      }
+    } else {
+      if (value._id.hour == 0) {
+        value._id.hour = 12;
+      }
+      labels.push(value._id.hour + 'am');
+    }
+
+    datas.push((value.total / 1000).toFixed(2));
+  });
+  labels.push(' ');
+  datas.push((resultArray.docs[resultArray.docs.length - 1].total / 1000).toFixed(2));
+  inputArray.labels = labels;
+  inputArray.datasets.data = datas;
+  overallConsumption = resultArray.docs
+    .map((value) => value.total / 1000)
+    .reduce((acc, current) => acc + current)
+    .toFixed(2);
+  return { inputArray, overallConsumption };
+};
 
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
   let today = new Date(2021, 2, 3);
