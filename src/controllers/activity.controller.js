@@ -120,7 +120,11 @@ const getActivitiesByOneDay = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let resultOneDay = { labels: [], datasets: { data: [] } };
-  resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
+  if (result.docs[0]?.total) {
+    resultOneDay = getActivitiesByOneDayHelper(result, resultOneDay);
+  } else {
+    return res.status(404).send({ message: 'No data found' });
+  }
   res.json({ resultOneDay, startDate: today2 });
 });
 
@@ -189,7 +193,12 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result7Days = { labels: [], datasets: { data: [] } };
-  result7Days = getActivitiesBy7DayHelper(result, result7Days);
+  if (result.docs[0]?.total) {
+    result7Days = getActivitiesBy7DayHelper(result, result7Days);
+  } else {
+    return res.status(404).send({ message: 'No data found' });
+  }
+
   res.json({ result7Days, startDate: today2, endDate: lastDate2 });
 });
 
@@ -247,8 +256,12 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
   let result1Month = { labels: [], datasets: { data: [] } };
-  result1Month = getActivitiesBy1MonthHelper(result, result1Month);
-  res.json({ result1Month, startDate: today2, endDate: lastDate2 });
+  if (result.docs[0]?.total) {
+    result1Month = getActivitiesBy1MonthHelper(result, result1Month);
+    res.json({ result1Month, startDate: today2, endDate: lastDate2 });
+  } else {
+    res.json({ message: 'No data found' });
+  }
 });
 
 const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
@@ -364,16 +377,26 @@ const getCutomActivity = catchAsync(async (req, res) => {
   console.log(functionSwitch);
   switch (functionSwitch) {
     case 'Month':
-      resultConsumption = getActivitiesBy1MonthHelper(result, customResult);
+      if (result.docs[0]?.total) {
+        resultConsumption = getActivitiesBy1MonthHelper(result, customResult);
+      } else {
+        return res.status(404).send({ message: 'No data found' });
+      }
       break;
     case 'Day':
-      resultConsumption = getActivitiesBy7DayHelper(result, customResult);
+      if (result.docs[0]?.total) {
+        resultConsumption = getActivitiesBy7DayHelper(result, customResult);
+      } else {
+        return res.status(404).send({ message: 'No data found' });
+      }
       break;
-    // res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
     case 'Hour':
-      resultConsumption = getActivitiesByOneDayHelper(result, customResult);
+      if (result.docs[0]?.total) {
+        resultConsumption = getActivitiesByOneDayHelper(result, customResult);
+      } else {
+        return res.status(404).send({ message: 'No data found' });
+      }
       break;
-    // res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
   }
   // console.log(result);
   res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
