@@ -13,6 +13,8 @@ router
   .delete()
   .patch();
 
+router.route('/customActivity').get(auth('getActivity'), activityController.getCutomActivity);
+
 router.route('/1month').get(auth('getActivity'), activityController.getActivitiesBy1Month);
 
 router.route('/7days').get(auth('getActivity'), activityController.getActivitiesBy7Days);
