@@ -287,7 +287,8 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
   console.log(inputArray);
   return { inputArray, overallConsumption };
 };
-const getCutomActivity = catchAsync(async (req, res) => {
+
+const getCustomActivity = catchAsync(async (req, res) => {
   today = moment(req.query.endDate).startOf('day');
   let today2 = moment(today).format('D MMMM');
   lastDate = moment(req.query.startDate).startOf('day');
@@ -431,5 +432,5 @@ module.exports = {
   getActivity,
   updateActivity,
   deleteActivity,
-  getCutomActivity,
+  getCustomActivity,
 };

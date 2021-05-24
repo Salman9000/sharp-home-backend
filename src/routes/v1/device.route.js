@@ -31,7 +31,7 @@ router.route('/oneday/:day').get(auth('getActivity'), deviceController.getDevice
 
 router.route('/total').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
 
-router.route('/customConsumption').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
+router.route('/customActivity').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
 
 router.route('/rooms').get(auth('getDevice'), deviceController.getRoomDevices);
 
