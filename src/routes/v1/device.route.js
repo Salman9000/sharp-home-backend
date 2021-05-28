@@ -13,7 +13,7 @@ router
   .delete()
   .patch();
 
-router.route('/rooms/:roomId').get(auth('roomDevice'), deviceController.getRoomDevices);
+// router.route('/rooms/:roomId').get(auth('roomDevice'), deviceController.getRoomDevices);
 
 router
   .route('/getDevice/:deviceId')

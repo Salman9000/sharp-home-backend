@@ -337,16 +337,16 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
 };
 
 const getCustomDeviceConsumption = catchAsync(async (req, res) => {
-  today = req.query.startDate;
+  today = moment(req.query.endDate).startOf('day');
   let today2 = moment(today).format('D MMMM');
-  lastDate = req.query.endDate;
+  lastDate = moment(req.query.startDate).startOf('day');
   let lastDate2 = moment(lastDate).format('D MMMM');
   diff = today.diff(lastDate, 'days');
   let aggregate = Activity.aggregate();
   let deviceArray = Object.values(req.query);
   let functionSwitch = '';
   deviceArray = deviceArray.map((value) => {
-    return ObjectId(value);
+    if (ObjectId.isValid(value)) return ObjectId(value);
   });
   console.log(deviceArray);
   if (deviceArray.length < 1) {
@@ -430,17 +430,20 @@ const getCustomDeviceConsumption = catchAsync(async (req, res) => {
     pagination: false,
   };
   const result = await activityService.queryAggregateActivities(aggregate, options);
-  let customResult = { labels: [], datasets: { data: [] } };
+  let customResult = { labels: [], datasets: [{ data: [] }] };
   let resultConsumption = '';
   switch (functionSwitch) {
     case 'Month':
       resultConsumption = getActivitiesBy1MonthHelper(result, customResult);
+      break;
 
     case 'Day':
       resultConsumption = getActivitiesBy7DayHelper(result, customResult);
+      break;
 
     case 'Hour':
       resultConsumption = getActivitiesByOneDayHelper(result, customResult);
+      break;
   }
   res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
 });
@@ -470,6 +473,7 @@ const getRoomDevices = catchAsync(async (req, res) => {
       deviceArray.push(newValue);
     })
   );
+  console.log(deviceArray);
   res.send(deviceArray);
 });
 
