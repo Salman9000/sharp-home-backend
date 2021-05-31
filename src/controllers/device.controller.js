@@ -481,6 +481,14 @@ const getDevice = catchAsync(async (req, res) => {
   res.send(device);
 });
 
+const getSensorDevices = catchAsync(async (req, res) => {
+  // console.log(req.user);
+  const filter = { deviceid: req.query.deviceId };
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await deviceService.queryDevices(filter, options);
+  res.send(result.docs);
+});
+
 const updateDevice = catchAsync(async (req, res) => {
   const device = await deviceService.updateDeviceById(req.params.deviceId, req.body);
   res.send(device);
@@ -496,6 +504,7 @@ module.exports = {
   getDevices,
   getRoomDevices,
   getDevice,
+  getSensorDevices,
   updateDevice,
   deleteDevice,
   getTotalConsumptionByDevice,
