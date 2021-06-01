@@ -13,6 +13,10 @@ router
   .delete()
   .patch();
 
-router.route('/:roomId').get(roomController.getRoom).patch(roomController.updateRoom).delete(roomController.deleteRoom);
+router
+  .route('/:roomId')
+  .get(roomController.getRoom)
+  .patch(auth('getRoom'), roomController.updateRoom)
+  .delete(auth('getRoom'), roomController.deleteRoom);
 
 module.exports = router;

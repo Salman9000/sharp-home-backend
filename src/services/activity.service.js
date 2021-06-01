@@ -40,6 +40,9 @@ const getActivityById = async (id) => {
   return Activity.findById(id);
 };
 
+const getActivityByDeviceId = async (filter) => {
+  return Activity.find(filter);
+};
 /**
  * Update activity by id
  * @param {ObjectId} ActivityId
@@ -62,12 +65,21 @@ const updateActivityById = async (ActivityId, updateBody) => {
  * @returns {Promise<Activity>}
  */
 const deleteActivityById = async (ActivityId) => {
-  const activity = await getActivityById(ActivityId);
+  const activity = await getActivityByDeviceId(ActivityId);
   if (!activity) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Activity not found');
   }
   await activity.remove();
   return activity;
+};
+const deleteActivityByDeviceId = async (filter, options) => {
+  const activity = await getActivityByDeviceId(filter, options);
+  if (!activity) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Activity not found');
+  }
+  console.log(activity.length);
+  // await activity.remove();
+  // return activity;
 };
 
 module.exports = {
@@ -77,4 +89,5 @@ module.exports = {
   getActivityById,
   updateActivityById,
   deleteActivityById,
+  deleteActivityByDeviceId,
 };

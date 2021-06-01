@@ -3,6 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { roomService } = require('../services');
+const { getRoomById } = require('../services/room.service');
 
 const createRoom = catchAsync(async (req, res) => {
   const room = await roomService.createRoom(req.body, req.user._id);

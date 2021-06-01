@@ -495,6 +495,7 @@ const getSensorDevices = catchAsync(async (req, res) => {
 
 const updateDevice = catchAsync(async (req, res) => {
   const device = await deviceService.updateDeviceById(req.params.deviceId, req.body);
+  console.log(device);
   res.send(device);
 });
 

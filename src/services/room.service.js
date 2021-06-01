@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const { deviceService } = require('../services');
 const { Room } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -63,8 +64,16 @@ const deleteRoomById = async (roomId) => {
   const room = await getRoomById(roomId);
   if (!room) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Room not found');
+  } else {
+    let roomDevices = [];
+    roomDevices = room.devices;
+    if (roomDevices.length > 0) {
+      console.log('jjj');
+      const devices = await deviceService.deleteDeviceUsingRoomId(roomId);
+      console.log(devices);
+    }
   }
-  await room.remove();
+  // await room.remove();
   return room;
 };
 
