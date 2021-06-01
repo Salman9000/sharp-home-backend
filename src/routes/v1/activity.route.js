@@ -21,15 +21,11 @@ router.route('/7days').get(auth('getActivity'), activityController.getActivities
 
 router.route('/:day').get(auth('getActivity'), activityController.getActivitiesByOneDay);
 
-// router.route('/Yesterday').get(auth('getActivity'), activityController.getActivitiesByOneDay);
-// router
-//   .route('/:activityId')
-//   .get(auth('getActivity'), activityController.getActivity)
 
-// router
-//   .route('getActivity/:activityId')
-//   .get(activityController.getActivity)
-//   .patch(activityController.updateActivity)
-//   .delete(activityController.deleteActivity);
+router
+  .route('/:activityId')
+  .get(activityController.getActivity)
+  .patch(activityController.updateActivity)
+  .delete(activityController.deleteActivity);
 
 module.exports = router;
