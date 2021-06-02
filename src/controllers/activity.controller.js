@@ -109,7 +109,7 @@ const createActivity = catchAsync(async (req, res) => {
   // res.status(httpStatus.CREATED).send(activity);
 });
 
-// cron.schedule('* * * * *', createActivity);
+cron.schedule('* * * * *', createActivity);
 
 const getActivities = catchAsync(async (req, res) => {
   const filter = { userId: req.user._id };
@@ -248,7 +248,7 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
@@ -256,7 +256,6 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
 
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
   let today = moment().endOf('day');
-  console.log(today);
   let today2 = moment(today).format('Do MMMM');
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -313,7 +312,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
@@ -321,7 +320,6 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
 
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
   let today = moment().endOf('day');
-  console.log(today);
   let today2 = moment(today).format('Do MMMM');
   var lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -361,7 +359,6 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
 });
 
 const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
-  console.log(inputArray);
   labels = [];
   datas = [];
   labels.push(' ');
@@ -377,7 +374,7 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total)
+    .map((value) => value.total / 1000)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   console.log(inputArray);

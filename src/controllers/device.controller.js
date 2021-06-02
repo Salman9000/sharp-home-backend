@@ -47,7 +47,6 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
 
 const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
   let today = moment().startOf('day');
-  console.log(today);
   let lastDate;
   if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
@@ -129,7 +128,7 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
     }
     deviceArray.push(`${value._id.deviceId}`);
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];
@@ -218,7 +217,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
     labels.push(`${moment(date).format('dd')}/${moment(date).format('D')}`); //add week to label array
     deviceArray.push(`${value._id.deviceId}`); //add device to device array
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];
@@ -237,7 +236,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
 
   overallConsumptionByDevice = [];
   data2.map((value) => {
-    overallConsumptionByDevice.push(`${value.reduce((acc, current) => parseFloat(acc) + parseFloat(current))}`);
+    overallConsumptionByDevice.push(`${value.reduce((acc, current) => parseFloat(acc) + parseFloat(current)).toFixed(2)}`);
   });
   overallConsumption = `${overallConsumptionByDevice.reduce((acc, current) => parseFloat(acc) + parseFloat(current))}`;
   inputArray.labels = labels; //rename label
@@ -307,7 +306,7 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
     labels.push('Week ' + value._id.week); //add week to label array
     deviceArray.push(`${value._id.deviceId}`); //add device to device array
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];
