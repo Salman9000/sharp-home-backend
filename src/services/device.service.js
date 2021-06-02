@@ -63,6 +63,10 @@ const updateDeviceById = async (deviceId, updateBody) => {
  * @param {ObjectId} deviceId
  * @returns {Promise<Device>}
  */
+const deleteDeviceByRoomId = async (roomId) => {
+  const devices = await Device.deleteMany({ room: roomId });
+  return devices;
+};
 const deleteDeviceById = async (deviceId) => {
   const device = await getDeviceById(deviceId);
   if (!device) {
@@ -79,17 +83,9 @@ const deleteDeviceById = async (deviceId) => {
     room.devices = tempArray;
     room.deviceCount = room.devices.length;
     const roomupdate = await Roomservice.updateRoomById(roomId, room);
-    console.log(roomupdate);
   }
   await device.remove();
-
   return device;
-};
-
-const deleteDeviceUsingRoomId = async (roomId) => {
-  console.log('hhh');
-  // const devices = await Device.find({ room: roomId });
-  // console.log(devices);
 };
 
 module.exports = {
@@ -98,5 +94,5 @@ module.exports = {
   getDeviceById,
   updateDeviceById,
   deleteDeviceById,
-  deleteDeviceUsingRoomId,
+  deleteDeviceByRoomId,
 };

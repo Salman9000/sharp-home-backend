@@ -14,6 +14,7 @@ router
   .patch();
 
 // router.route('/rooms/:roomId').get(auth('roomDevice'), deviceController.getRoomDevices);
+router.route('/rooms').get(auth('getDevice'), deviceController.getRoomDevices);
 
 router
   .route('/:deviceId')
@@ -34,7 +35,5 @@ router.route('/oneday/:day').get(auth('getActivity'), deviceController.getDevice
 router.route('/total').get(auth('getDevice'), deviceController.getTotalConsumptionAllDevices);
 
 router.route('/customActivity').get(auth('getDevice'), deviceController.getCustomDeviceConsumption);
-
-router.route('/rooms').get(auth('getDevice'), deviceController.getRoomDevices);
 
 module.exports = router;
