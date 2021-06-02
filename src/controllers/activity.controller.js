@@ -20,6 +20,7 @@ const getSingleActivity = async (id) => {
 };
 
 const createNewActivity = async (deviceStatus, value) => {
+  console.log('kjhg');
   wakeUpDyno('https://tranquil-mountain-72532.herokuapp.com');
   let activityBody = {
     activity: [
