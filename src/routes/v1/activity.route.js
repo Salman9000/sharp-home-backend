@@ -21,7 +21,6 @@ router.route('/7days').get(auth('getActivity'), activityController.getActivities
 
 router.route('/:day').get(auth('getActivity'), activityController.getActivitiesByOneDay);
 
-
 router
   .route('/:activityId')
   .get(activityController.getActivity)

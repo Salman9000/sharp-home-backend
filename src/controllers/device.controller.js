@@ -46,7 +46,8 @@ const getTotalConsumptionByDevice = catchAsync(async (req, res) => {
 });
 
 const getDeviceConsumptionByOneDay = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().startOf('day');
+  console.log(today);
   let lastDate;
   if (req.params.day == 'today') {
     lastDate = moment(today).add(24, 'hours');
@@ -128,7 +129,7 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
     }
     deviceArray.push(`${value._id.deviceId}`);
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];
@@ -159,7 +160,7 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
 };
 
 const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().endOf('day');
   let today2 = moment(today).format('D MMMM');
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('D MMMM');
@@ -171,13 +172,13 @@ const getDeviceConsumptionBy7Days = catchAsync(async (req, res) => {
   if (deviceArray.length < 1) {
     aggregate.match({
       userId: req.user._id,
-      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lte: new Date(today) },
     });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lte: new Date(today) },
     });
   }
   aggregate.group({
@@ -217,7 +218,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
     labels.push(`${moment(date).format('dd')}/${moment(date).format('D')}`); //add week to label array
     deviceArray.push(`${value._id.deviceId}`); //add device to device array
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];
@@ -236,7 +237,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
 
   overallConsumptionByDevice = [];
   data2.map((value) => {
-    overallConsumptionByDevice.push(`${value.reduce((acc, current) => (parseFloat(acc) + parseFloat(current)).toFixed(2))}`);
+    overallConsumptionByDevice.push(`${value.reduce((acc, current) => parseFloat(acc) + parseFloat(current))}`);
   });
   overallConsumption = `${overallConsumptionByDevice.reduce((acc, current) => parseFloat(acc) + parseFloat(current))}`;
   inputArray.labels = labels; //rename label
@@ -248,7 +249,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
 };
 
 const getDeviceConsumptionBy1Month = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().endOf('day');
   let today2 = moment(today).format('D MMMM');
   let lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('D MMMM');
@@ -306,7 +307,7 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
     labels.push('Week ' + value._id.week); //add week to label array
     deviceArray.push(`${value._id.deviceId}`); //add device to device array
     deviceName.push(`${value.devices[0].name}`); //add device to device array
-    datas.push(`${(value.total / 1000).toFixed(2)} ${value._id.deviceId}`); //add total and device id to datas array
+    datas.push(`${value.total} ${value._id.deviceId}`); //add total and device id to datas array
   });
 
   data = [];

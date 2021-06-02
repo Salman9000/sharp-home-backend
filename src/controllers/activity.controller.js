@@ -109,7 +109,7 @@ const createActivity = catchAsync(async (req, res) => {
   // res.status(httpStatus.CREATED).send(activity);
 });
 
-cron.schedule('* * * * *', createActivity);
+// cron.schedule('* * * * *', createActivity);
 
 const getActivities = catchAsync(async (req, res) => {
   const filter = { userId: req.user._id };
@@ -144,7 +144,7 @@ const getRoomDevices = async (userId, roomArray) => {
 // });
 
 const getActivitiesByOneDay = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().startOf('day');
   let today2 = '';
   let lastDate = '';
   if (req.params.day == 'today') {
@@ -248,14 +248,15 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total / 1000)
+    .map((value) => value.total)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
 };
 
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().endOf('day');
+  console.log(today);
   let today2 = moment(today).format('Do MMMM');
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -265,12 +266,12 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lt: new Date(today) } });
+    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lte: new Date(today) },
     });
   }
   aggregate.group({
@@ -312,14 +313,15 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total / 1000)
+    .map((value) => value.total)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   return { inputArray, overallConsumption };
 };
 
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
-  let today = new Date(2021, 2, 3);
+  let today = moment().endOf('day');
+  console.log(today);
   let today2 = moment(today).format('Do MMMM');
   var lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -375,7 +377,7 @@ const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
   inputArray.labels = labels;
   inputArray.datasets.data = datas;
   overallConsumption = resultArray.docs
-    .map((value) => value.total / 1000)
+    .map((value) => value.total)
     .reduce((acc, current) => acc + current)
     .toFixed(2);
   console.log(inputArray);
