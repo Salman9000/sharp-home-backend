@@ -12,6 +12,8 @@ const { response } = require('express');
 const { data } = require('../config/logger');
 const { ObjectId } = require('mongodb');
 const cron = require('node-cron');
+const fetch = require('node-fetch');
+const { config } = require('dotenv/types');
 
 const getSingleActivity = async (id) => {
   let activityResult = await activityService.getActivityById(ObjectId(id));
@@ -19,6 +21,7 @@ const getSingleActivity = async (id) => {
 };
 
 const createNewActivity = async (deviceStatus, value) => {
+  wakeUpDyno('https://tranquil-mountain-72532.herokuapp.com');
   let activityBody = {
     activity: [
       {
@@ -514,6 +517,32 @@ const deleteActivity = catchAsync(async (req, res) => {
   await activityService.deleteActivityById(req.params.activityId);
   res.status(httpStatus.NO_CONTENT).send();
 });
+
+const wakeUpDyno = (url, interval = 2, callback) => {
+  console.log('kkk');
+  const milliseconds = interval * 60000;
+  setTimeout(() => {
+    try {
+      console.log(`setTimeout called.`);
+      // HTTP GET request to the dyno's url
+      fetch(url).then(() => console.log(`Fetching ${url}.`));
+    } catch (err) {
+      // catch fetch errors
+      console.log(`Error fetching ${url}: ${err.message} 
+          Will try again in ${interval} minutes...`);
+    } finally {
+      try {
+        callback(); // execute callback, if passed
+      } catch (e) {
+        // catch callback error
+        callback ? console.log('Callback failed: ', e.message) : null;
+      } finally {
+        // do it all again
+        return wakeUpDyno(url, interval, callback);
+      }
+    }
+  }, milliseconds);
+};
 
 module.exports = {
   createActivity,
