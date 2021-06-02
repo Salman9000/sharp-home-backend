@@ -449,7 +449,7 @@ const getCustomDeviceConsumption = catchAsync(async (req, res) => {
 });
 
 const getDevices = catchAsync(async (req, res) => {
-  // console.log(req.user);
+  console.log(req.user);
   const filter = { userId: req.user._id };
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   const result = await deviceService.queryDevices(filter, options);
@@ -458,10 +458,13 @@ const getDevices = catchAsync(async (req, res) => {
 
 const getRoomDevices = catchAsync(async (req, res) => {
   let aggregate = Room.aggregate();
+  console.log('room');
   let roomArray = Object.values(req.query);
+
   roomArray = roomArray.map((value) => {
-    return ObjectId(value);
+    if (ObjectId.isValid(value)) return ObjectId(value);
   });
+  console.log(roomArray);
   aggregate.match({ userId: req.user._id, _id: { $in: roomArray } });
   const options = {
     pagination: false,
@@ -478,6 +481,7 @@ const getRoomDevices = catchAsync(async (req, res) => {
 });
 
 const getDevice = catchAsync(async (req, res) => {
+  console.log('jjjj');
   const device = await deviceService.getDeviceById(req.params.deviceId);
   if (!device) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Device not found');
