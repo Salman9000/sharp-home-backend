@@ -5,12 +5,12 @@ const deviceSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
     powerRating: {
       type: Number,
-      required: true,
+      required: false,
     },
     status: {
       type: String,
@@ -31,6 +31,16 @@ const deviceSchema = mongoose.Schema(
     userId: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
+      required: false,
+    },
+    latestActivity: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Activity',
+      required: false,
+    },
+    abc: {
+      type: String,
+
       required: false,
     },
   },

@@ -6,16 +6,98 @@ const { activityService } = require('../services');
 const { roomService } = require('../services');
 var moment = require('moment');
 const { ConsoleTransportOptions } = require('winston/lib/winston/transports');
-const { Activity } = require('../models');
+const { Activity, Device } = require('../models');
 const { Room } = require('../models');
 const { response } = require('express');
 const { data } = require('../config/logger');
 const { ObjectId } = require('mongodb');
+const cron = require('node-cron');
 
+const getSingleActivity = async (id) => {
+  let activityResult = await activityService.getActivityById(ObjectId(id));
+  return activityResult;
+};
+
+const createNewActivity = async (deviceStatus, value) => {
+  let activityBody = {
+    activity: [
+      {
+        status: deviceStatus ? 'on' : 'off',
+        cumulative: deviceStatus ? value.powerRating / 1000 : 0,
+        overall: deviceStatus ? value.powerRating / 1000 : 0,
+        timestamp: new Date(),
+      },
+    ],
+    overallConsumption: deviceStatus ? value.powerRating / 1000 : 0,
+    powerRating: value.powerRating,
+    startDate: new Date(),
+    endDate: new Date(),
+    numberOfEntries: 1,
+    deviceId: ObjectId(value.id),
+    userId: ObjectId(value.userId),
+  };
+  let activityResult = await Activity.create(activityBody);
+  return activityResult;
+};
 const createActivity = catchAsync(async (req, res) => {
-  const activity = await activityService.createActivity(req.body, req.user._id);
-  res.status(httpStatus.CREATED).send(activity);
+  let filter = {};
+  let options = { pagination: false };
+  const result = await Device.paginate(filter, options);
+  // result.docs.map(async (value) => {
+  value = result.docs[3];
+  //Get the status of device
+  //Get the power of device
+  //Get latest activity id
+  // console.log(value.latestActivity);
+  //find activity from activity id. It will return single document.
+  let activityResult = await getSingleActivity(value.latestActivity);
+  //from that document update the following
+  //array: get the last value of array.
+  let deviceStatus = value.status == 'on' ? true : false;
+  if (activityResult == null) {
+    console.log('mewo');
+
+    // activityResult.activity.push(itemToPush);
+    // console.log(activityResult);
+  } else {
+    if (deviceStatus) {
+      //If device status is on: add power rating to cumlative.
+      itemToPush.status = 'on';
+      itemToPush.cumulative = lastItem.cumulative + value.rating / 1000;
+      itemToPush.overall = lastItem.overall + value.rating / 1000;
+      overallConsumption = activityResult.overallConsumption + value.rating / 1000;
+    } else {
+      //If device status if off: dont add.
+      itemToPush.status = 'false';
+      itemToPush.cumulative = 0;
+      itemToPush.overall = lastItem.overall;
+      overallConsumption = activityResult.overallConsumption;
+    }
+    let lastItem = activityResult.activity.slice(-1);
+    console.log(lastItem);
+    let itemToPush = {};
+
+    // console.log(createNewActivity(deviceStatus, value));
+  }
+
+  // Object.assign(activityResult, );
+  // await device.save();
+  //powerrating: do nothing
+
+  //stardate:
+  //endate
+  //createdat
+  //updatedat
+  //numberofentries
+  //deviceid
+  //userid
+  // });
+
+  // const activity = await activityService.createActivity(req.body, req.user._id);
+  // res.status(httpStatus.CREATED).send(activity);
 });
+
+// cron.schedule('* * * * * *', createActivity);
 
 const getActivities = catchAsync(async (req, res) => {
   const filter = { userId: req.user._id };
