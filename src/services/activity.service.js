@@ -51,10 +51,10 @@ const getActivityByDeviceId = async (filter) => {
  */
 const updateActivityById = async (ActivityId, updateBody) => {
   const activity = await getActivityById(ActivityId);
-  if (!activty) {
+  if (!activity) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Activty not found');
   }
-  Object.assign(activty, updateBody);
+  Object.assign(activity, updateBody);
   await activity.save();
   return activity;
 };

@@ -17,7 +17,7 @@ router
 router.route('/rooms').get(auth('getDevice'), deviceController.getRoomDevices);
 
 router
-  .route('/:deviceId')
+  .route('/info/:deviceId')
   .get(deviceController.getDevice)
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);

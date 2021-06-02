@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { activityService } = require('../services');
+const { activityService, deviceService } = require('../services');
 const { roomService } = require('../services');
 var moment = require('moment');
 const { ConsoleTransportOptions } = require('winston/lib/winston/transports');
@@ -30,8 +30,8 @@ const createNewActivity = async (deviceStatus, value) => {
     ],
     overallConsumption: deviceStatus ? value.powerRating / 1000 : 0,
     powerRating: value.powerRating,
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: moment(new Date()).utc().toISOString(),
+    endDate: moment.utc().startOf('day').add(24, 'hours').toISOString(),
     numberOfEntries: 1,
     deviceId: ObjectId(value.id),
     userId: ObjectId(value.userId),
@@ -44,7 +44,8 @@ const createActivity = catchAsync(async (req, res) => {
   let options = { pagination: false };
   const result = await Device.paginate(filter, options);
   // result.docs.map(async (value) => {
-  value = result.docs[3];
+  value = result.docs[2];
+  // console.log(value);
   //Get the status of device
   //Get the power of device
   //Get latest activity id
@@ -54,30 +55,41 @@ const createActivity = catchAsync(async (req, res) => {
   //from that document update the following
   //array: get the last value of array.
   let deviceStatus = value.status == 'on' ? true : false;
-  if (activityResult == null) {
-    console.log('mewo');
-
-    // activityResult.activity.push(itemToPush);
-    // console.log(activityResult);
-  } else {
+  let overallConsumption;
+  let numberOfEntries;
+  if (activityResult?.id != undefined && new Date(activityResult?.endDate) > new Date()) {
+    let lastItem = activityResult.activity.slice(-1)[0];
+    // console.log(lastItem);
+    let itemToPush = {};
     if (deviceStatus) {
       //If device status is on: add power rating to cumlative.
       itemToPush.status = 'on';
-      itemToPush.cumulative = lastItem.cumulative + value.rating / 1000;
-      itemToPush.overall = lastItem.overall + value.rating / 1000;
-      overallConsumption = activityResult.overallConsumption + value.rating / 1000;
+      itemToPush.cumulative = lastItem.cumulative + value.powerRating / 1000;
+      itemToPush.overall = lastItem.overall + value.powerRating / 1000;
+      itemToPush.timestamp = new Date();
+      overallConsumption = activityResult.overallConsumption + value.powerRating / 1000;
+      numberOfEntries = activityResult.numberOfEntries + 1;
     } else {
       //If device status if off: dont add.
-      itemToPush.status = 'false';
+      itemToPush.status = 'off';
       itemToPush.cumulative = 0;
       itemToPush.overall = lastItem.overall;
+      itemToPush.timestamp = new Date();
       overallConsumption = activityResult.overallConsumption;
+      numberOfEntries = activityResult.numberOfEntries + 1;
     }
-    let lastItem = activityResult.activity.slice(-1);
-    console.log(lastItem);
-    let itemToPush = {};
-
-    // console.log(createNewActivity(deviceStatus, value));
+    activityResult.activity.push(itemToPush);
+    let activityArray = activityResult.activity;
+    let updatedActivity = await activityService.updateActivityById(value.latestActivity, {
+      activity: activityArray,
+      overallConsumption: overallConsumption,
+      numberOfEntries: numberOfEntries,
+    });
+    // console.log(updatedActivity);
+  } else {
+    let result = await createNewActivity(deviceStatus, value);
+    let deviceresult = await deviceService.updateDeviceById(value.id, { latestActivity: result.id });
+    // console.log(deviceresult);
   }
 
   // Object.assign(activityResult, );
@@ -97,7 +109,7 @@ const createActivity = catchAsync(async (req, res) => {
   // res.status(httpStatus.CREATED).send(activity);
 });
 
-// cron.schedule('* * * * * *', createActivity);
+cron.schedule('* * * * *', createActivity);
 
 const getActivities = catchAsync(async (req, res) => {
   const filter = { userId: req.user._id };
