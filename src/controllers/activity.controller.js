@@ -13,7 +13,6 @@ const { data } = require('../config/logger');
 const { ObjectId } = require('mongodb');
 const cron = require('node-cron');
 const fetch = require('node-fetch');
-const { config } = require('dotenv/types');
 
 const getSingleActivity = async (id) => {
   let activityResult = await activityService.getActivityById(ObjectId(id));
