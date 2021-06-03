@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { activityService, deviceService } = require('../services');
+const { activityService, deviceService, notificationService } = require('../services');
 const { roomService } = require('../services');
 var moment = require('moment');
 const { ConsoleTransportOptions } = require('winston/lib/winston/transports');
@@ -44,8 +44,8 @@ const createActivity = catchAsync(async (req, res) => {
   let options = { pagination: false };
   const result = await Device.paginate(filter, options);
   // result.docs.map(async (value) => {
-  value = result.docs[2];
-  // console.log(value);
+  value = result.docs[4];
+  console.log(value);
   //Get the status of device
   //Get the power of device
   //Get latest activity id
@@ -55,6 +55,57 @@ const createActivity = catchAsync(async (req, res) => {
   //from that document update the following
   //array: get the last value of array.
   let deviceStatus = value.status == 'on' ? true : false;
+  let deviceRange = value.range;
+  let currentTime = new Date();
+  let hours = currentTime.getHours();
+  console.log(hours);
+  let deviceStartTime;
+  let deviceEndTime;
+  if (deviceStatus) {
+    console.log('inside deivce');
+    deviceRange.map((element) => {
+      if (element.startTime > element.endTime) {
+        if (!(hours <= element.startTime && hours >= element.endTime)) {
+          deviceStartTime = element.startTime;
+          deviceEndTime = element.endTime;
+        }
+      } else {
+        console.log('moew');
+        if (!(hours >= element.startTime && hours <= element.endTime)) {
+          console.log('SA');
+          deviceStartTime = element.startTime;
+          deviceEndTime = element.endTime;
+        }
+      }
+    });
+  }
+  console.log(deviceStartTime);
+  if (deviceStartTime) {
+    deviceStartTime = deviceStartTime > 12 ? `${deviceStartTime - 12}pm` : `${deviceStartTime}am`;
+    deviceEndTime = deviceEndTime > 12 ? `${deviceEndTime - 12}pm` : `${deviceEndTime}am`;
+    let filter = { userId: value.userId, name: `${deviceStartTime}-${deviceEndTime}` };
+    let options = { pagination: false };
+    const getNotification = await notificationService.queryNotifications(filter, options);
+    console.log(getNotification);
+    if (getNotification.docs.length < 1) {
+      let notificationBody = {
+        name: `${deviceStartTime}-${deviceEndTime}`,
+        type: 'Warning',
+        message: `Your device ${value.name} was on during ${deviceStartTime} to ${deviceEndTime}`,
+        deviceId: value.id,
+        deviceName: value.name,
+      };
+      const notificationResult = await notificationService.createNotification(notificationBody, value.userId);
+      console.log(notificationResult);
+    } else {
+      // let updatedNotification = await notificationService.updateNotificationById(getNotification.docs.id, {
+      //   name: getNotification.docs.name,
+      //   overallConsumption: overallConsumption,
+      //   numberOfEntries: numberOfEntries,
+      // });
+    }
+  }
+
   let overallConsumption;
   let numberOfEntries;
   if (activityResult?.id != undefined && new Date(activityResult?.endDate) > new Date()) {

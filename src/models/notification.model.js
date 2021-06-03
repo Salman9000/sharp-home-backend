@@ -1,31 +1,23 @@
 const mongoose = require('mongoose');
 const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
-const deviceSchema = mongoose.Schema(
+const notificationSchema = mongoose.Schema(
   {
     name: {
       type: String,
       required: false,
       trim: true,
     },
-    powerRating: {
-      type: Number,
-      required: false,
-    },
-    status: {
+    type: {
       type: String,
-      enum: ['on', 'off'],
-      required: true,
-      default: 'on',
-    },
-    exists: {
-      type: Boolean,
       required: false,
-      default: true,
     },
-    room: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'room',
+    message: {
+      type: String,
+      required: false,
+    },
+    deviceName: {
+      type: String,
       required: false,
     },
     userId: {
@@ -33,17 +25,11 @@ const deviceSchema = mongoose.Schema(
       ref: 'User',
       required: false,
     },
-    latestActivity: {
+    deviceId: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Activity',
+      ref: 'Device',
       required: false,
     },
-    range: [
-      {
-        startTime: { type: Number, required: true },
-        endTime: { type: Number, required: true },
-      },
-    ],
   },
   {
     timestamps: true,
@@ -51,23 +37,23 @@ const deviceSchema = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-deviceSchema.plugin(toJSON);
-deviceSchema.plugin(paginate);
-deviceSchema.plugin(aggregatePaginate);
+notificationSchema.plugin(toJSON);
+notificationSchema.plugin(paginate);
+notificationSchema.plugin(aggregatePaginate);
 /*
  * Check if email is taken
  * @param {string} email - The user's email
  * @param {ObjectId} [excludeUserId] - The id of the user to be excluded
  * @returns {Promise<boolean>}
  */
-// deviceSchema.statics.isEmailTaken = async function (email, excludeUserId) {
+// notificationSchema.statics.isEmailTaken = async function (email, excludeUserId) {
 //   const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
 //   return !!user;
 // };
 
 /**
- * @typedef Device
+ * @typedef Notification
  */
-const Device = mongoose.model('Device', deviceSchema);
+const Notification = mongoose.model('Notification', notificationSchema);
 
-module.exports = Device;
+module.exports = Notification;

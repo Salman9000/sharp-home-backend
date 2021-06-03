@@ -100,4 +100,5 @@ module.exports = {
   updateDeviceById,
   deleteDeviceById,
   deleteDeviceByRoomId,
+  queryAggregateDevices,
 };

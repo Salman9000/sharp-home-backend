@@ -4,6 +4,7 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const roomRoute = require('./room.route');
 const deviceRoute = require('./device.route');
+const notificationRoute = require('./notification.route');
 const activityRoute = require('./activity.route');
 const config = require('../../config/config');
 
@@ -29,7 +30,11 @@ const defaultRoutes = [
   {
     path: '/activity',
     route: activityRoute,
-  }
+  },
+  {
+    path: '/notification',
+    route: notificationRoute,
+  },
 ];
 
 const devRoutes = [
