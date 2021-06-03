@@ -12,7 +12,6 @@ const { response } = require('express');
 const { data } = require('../config/logger');
 const { ObjectId } = require('mongodb');
 const cron = require('node-cron');
-const fetch = require('node-fetch');
 
 const getSingleActivity = async (id) => {
   let activityResult = await activityService.getActivityById(ObjectId(id));
@@ -145,7 +144,7 @@ const getRoomDevices = async (userId, roomArray) => {
 // });
 
 const getActivitiesByOneDay = catchAsync(async (req, res) => {
-  let today = moment().startOf('day');
+  let today = new Date(2021, 2, 3);
   let today2 = '';
   let lastDate = '';
   if (req.params.day == 'today') {
@@ -256,7 +255,7 @@ const getActivitiesByOneDayHelper = (resultArray, inputArray) => {
 };
 
 const getActivitiesBy7Days = catchAsync(async (req, res) => {
-  let today = moment().endOf('day');
+  let today = new Date(2021, 2, 3);
   let today2 = moment(today).format('Do MMMM');
   let lastDate = moment(today).subtract(7, 'days');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -266,12 +265,12 @@ const getActivitiesBy7Days = catchAsync(async (req, res) => {
     return ObjectId(value);
   });
   if (deviceArray.length < 1) {
-    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lte: new Date(today) } });
+    aggregate.match({ userId: req.user._id, startDate: { $gte: new Date(lastDate), $lt: new Date(today) } });
   } else {
     aggregate.match({
       userId: req.user._id,
       deviceId: { $in: deviceArray },
-      startDate: { $gte: new Date(lastDate), $lte: new Date(today) },
+      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
     });
   }
   aggregate.group({
@@ -320,7 +319,7 @@ const getActivitiesBy7DayHelper = (resultArray, inputArray) => {
 };
 
 const getActivitiesBy1Month = catchAsync(async (req, res) => {
-  let today = moment().endOf('day');
+  let today = new Date(2021, 2, 3);
   let today2 = moment(today).format('Do MMMM');
   var lastDate = moment(today).subtract(1, 'month');
   let lastDate2 = moment(lastDate).format('Do MMMM');
@@ -360,6 +359,7 @@ const getActivitiesBy1Month = catchAsync(async (req, res) => {
 });
 
 const getActivitiesBy1MonthHelper = (resultArray, inputArray) => {
+  console.log(inputArray);
   labels = [];
   datas = [];
   labels.push(' ');
@@ -498,6 +498,55 @@ const getCustomActivity = catchAsync(async (req, res) => {
   // res.json({ result });
 });
 
+const getActivityBarChart = catchAsync(async (req, res) => {
+  // cumulative: deviceStatus ? value.powerRating / 1000 : 0,
+  today = req.query.endDate ? moment(req.query.endDate).startOf('day') : new Date(2021, 2, 3);
+  console.log(today);
+  let today2 = moment(today).format('D MMMM');
+  lastDate = req.query.startDate ? moment(req.query.startDate).startOf('day') : new Date(2021, 2, 2);
+  console.log(lastDate);
+  let lastDate2 = moment(lastDate).format('D MMMM');
+  diff = today.diff(lastDate, 'days');
+
+  let aggregate = Activity.aggregate();
+  let deviceArray = Object.values(req.query);
+  let functionSwitch = '';
+  deviceArray = deviceArray.map((value) => {
+    if (ObjectId.isValid(value)) return ObjectId(value);
+  });
+  console.log(deviceArray);
+  console.log(diff);
+  if (deviceArray.length < 1) {
+    aggregate.match({
+      userId: req.user._id,
+      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
+    });
+  } else {
+    aggregate.match({
+      userId: req.user._id,
+      deviceId: { $in: deviceArray },
+      startDate: { $gte: new Date(lastDate), $lt: new Date(today) },
+    });
+  }
+
+  aggregate.group({
+    _id: {
+      deviceId: '$deviceId',
+    },
+    total: { $sum: '$overallConsumption' },
+  });
+  aggregate.sort({ total: -1 });
+  // functionSwitch = 'Month';
+
+  const options = {
+    pagination: false,
+  };
+  const result = await activityService.queryAggregateActivities(aggregate, options);
+  let customResult = { labels: [], datasets: { data: [] } };
+  let resultConsumption = '';
+  console.log(result.docs);
+});
+
 const getActivity = catchAsync(async (req, res) => {
   const activity = await activityService.getActivityById(req.params.activityId);
   if (!activity) {
@@ -527,4 +576,5 @@ module.exports = {
   updateActivity,
   deleteActivity,
   getCustomActivity,
+  getActivityBarChart,
 };

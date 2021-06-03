@@ -19,6 +19,8 @@ router.route('/1month').get(auth('getActivity'), activityController.getActivitie
 
 router.route('/7days').get(auth('getActivity'), activityController.getActivitiesBy7Days);
 
+router.route('/barchart').get(auth('getActivity'), activityController.getActivityBarChart);
+
 router.route('/:day').get(auth('getActivity'), activityController.getActivitiesByOneDay);
 
 router
