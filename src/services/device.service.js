@@ -42,6 +42,11 @@ const getDeviceById = async (id) => {
   return Device.findById(id);
 };
 
+const queryAggregateDevices = async (aggregate, options) => {
+  const dev = await Device.aggregatePaginate(aggregate, options);
+  return dev;
+};
+
 /**
  * Update device by id
  * @param {ObjectId} deviceId

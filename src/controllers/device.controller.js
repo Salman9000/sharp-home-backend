@@ -449,6 +449,18 @@ const getCustomDeviceConsumption = catchAsync(async (req, res) => {
   res.json({ resultConsumption, startDate: today2, endDate: lastDate2 });
 });
 
+const getDevicesWithRooms = catchAsync(async (req, res) => {
+  let aggregate = Device.aggregate();
+  aggregate.match({ userId: req.user._id });
+  const options = {
+    pagination: false,
+  };
+  aggregate.lookup({ from: 'rooms', localField: 'room', foreignField: '_id', as: 'roomInfo' });
+  const result = await deviceService.queryAggregateDevices(aggregate, options);
+  console.log(result);
+  res.send(result);
+});
+
 const getDevices = catchAsync(async (req, res) => {
   console.log(req.user);
   const filter = { userId: req.user._id };
@@ -512,6 +524,7 @@ const deleteDevice = catchAsync(async (req, res) => {
 module.exports = {
   createDevice,
   getDevices,
+  getDevicesWithRooms,
   getRoomDevices,
   getDevice,
   getSensorDevices,

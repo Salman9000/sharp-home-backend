@@ -22,6 +22,8 @@ router
   .patch(deviceController.updateDevice)
   .delete(deviceController.deleteDevice);
 
+router.route('/getDevicesWithRooms').get(auth('getDevice'), deviceController.getDevicesWithRooms);
+
 router.route('/getSensorDevices/:deviceId').get(deviceController.getSensorDevices);
 
 router.route('/total/:deviceId').get(auth('getDevice'), deviceController.getTotalConsumptionByDevice);
