@@ -160,7 +160,7 @@ const createActivity = catchAsync(async (req, res) => {
   // res.status(httpStatus.CREATED).send(activity);
 });
 
-cron.schedule('* * * * *', createActivity);
+// cron.schedule('* * * * *', createActivity);
 
 const getActivities = catchAsync(async (req, res) => {
   const filter = { userId: req.user._id };

@@ -24,6 +24,14 @@ const getNotification = catchAsync(async (req, res) => {
   res.send(notification);
 });
 
+const getUnseenNotifications = catchAsync(async (req, res) => {
+  const filter = { userId: req.user._id, seen: false };
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await notificationService.queryNotifications(filter, options);
+  console.log(result.docs.length);
+  res.json({ count: result.docs.length });
+});
+
 const updateNotification = catchAsync(async (req, res) => {
   const notification = await notificationService.updateNotificationById(req.params.notificationId, req.body);
   res.send(notification);
@@ -40,4 +48,5 @@ module.exports = {
   getNotification,
   updateNotification,
   deleteNotification,
+  getUnseenNotifications,
 };

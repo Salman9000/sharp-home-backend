@@ -9,7 +9,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
   logger.info('Connected to MongoDB');
   server = app.listen(config.port, () => {
     logger.info(`Listening to port ${config.port}`);
-    // wakeUpDyno('https://tranquil-mountain-72532.herokuapp.com');
+    wakeUpDyno('https://tranquil-mountain-72532.herokuapp.com');
   });
 });
 

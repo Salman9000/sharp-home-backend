@@ -1,3 +1,4 @@
+const { boolean } = require('joi');
 const mongoose = require('mongoose');
 const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
@@ -29,6 +30,11 @@ const notificationSchema = mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Device',
       required: false,
+    },
+    seen: {
+      type: Boolean,
+      default: true,
+      required: true,
     },
   },
   {

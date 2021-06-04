@@ -12,6 +12,13 @@ router
   .patch();
 
 router
+  .route('/getunseen')
+  //   .post(auth('createNotification'), notificationController.createNotification)
+  .get(auth('getNotification'), notificationController.getUnseenNotifications)
+  .delete()
+  .patch();
+
+router
   .route('/:notificationId')
   .get(auth('getNotification'), notificationController.getNotification)
   //   .patch(notificationController.updateNotification)
